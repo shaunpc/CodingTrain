@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">Coding Train</string>
+    <string name="intro">This is a collection of coding challenges from the Coding Train YouTube series</string>
+    <string name="button1">OpenGL Basics</string>
+    <string name="button2">Canvas Basics</string>
+    <string name="button3">Fireworks</string>
+    <string name="button4">Metaballs</string>
+    <string name="button5">Smart Rockets</string>
+    <string name="button6">Double Pendulum</string>
+    <string name="button7">Snakes and Ladders</string>
+    <string name="button8">Circle Packing</string>
+    <string name="button9">Mitosis Simulation</string>
+    <string name="button10">Really cool thing...</string>
+
+    <string name="title_activity_opengl">OpenGL Activity</string>
+    <string name="title_activity_canvas">Canvas Activity</string>
+    <string name="title_activity_fireworks">Fireworks Activity</string>
+    <string name="title_activity_metaballs">Metaballs Activity</string>
+    <string name="title_activity_smartrockets">Smart Rockets Activity</string>
+    <string name="title_activity_pendulum">Double Pendulum Activity</string>
+    <string name="title_activity_snakes">Snakes and Ladders Activity</string>
+    <string name="title_activity_circlepack">Circle Packing Activity</string>
+    <string name="title_activity_mitosis">Mitosis Simulation Activity</string>
+
+    <string name="action_button_done">DONE</string>
+    <string name="action_button_start">START</string>
+    <string name="key_info">KEY INFO</string>
+    <string name="log_info">LOG INFO</string>
+
+
+</resources>
