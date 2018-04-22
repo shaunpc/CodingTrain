@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -85,7 +84,7 @@ public class PendulumActivity extends AppCompatActivity {
         private Handler handler;
         private static final int FRAME_RATE = 20 ; // 50 frames per second
 
-        float path[] = new float[100];    // Holds the pendulum#2 path history
+        float path[] = new float[1000];    // Holds the pendulum#2 path history
         float anchorX, anchorY;       //Anchor point
         float tmpX, tmpY;       //Temporary point as user moves the pendulum
         float m1, x1, y1;   // Pendulum #1 mass, coords
@@ -114,10 +113,10 @@ public class PendulumActivity extends AppCompatActivity {
             paintText.setColor(Color.WHITE);
             paintPath = new Paint();
             paintPath.setStyle(Paint.Style.STROKE);
-            paintPath.setStrokeWidth(1);
-            paintPath.setAlpha(120);
+            paintPath.setStrokeWidth(5);
+            paintPath.setAlpha(150);
             paintPath.setStrokeCap(Paint.Cap.ROUND);
-            paintPath.setColor(Color.LTGRAY);
+            paintPath.setColor(Color.RED);
 
         }
 
@@ -149,15 +148,16 @@ public class PendulumActivity extends AppCompatActivity {
         private void updateMyCanvas () {
 
             if (!started) {
+                int smaller = Math.min(myCanvasView.getWidth(),myCanvasView.getHeight());
                 anchorX = myCanvasView.getWidth()/2; // in middle
                 anchorY = myCanvasView.getHeight()/18; // near top
                 m1 = 30;    // Pendulum #1 mass
-                r1 = myCanvasView.getWidth()/4;    // Pendulum #1 length of string
-                a1 = Math.PI/2;     // Pendulum #1 angle
+                r1 = smaller/3;    // Pendulum #1 length of string
+                a1 = Math.PI/4;     // Pendulum #1 angle
                 a1_vel = 0;
                 m2 = 30;    // Pendulum #2 mass
-                r2 = myCanvasView.getWidth()/6;    // Pendulum #2 length of string
-                a2 = Math.PI/2;     // Pendulum #2 angle
+                r2 = smaller/4;    // Pendulum #2 length of string
+                a2 = Math.PI/8;     // Pendulum #2 angle
                 a2_vel = 0;
                 started=true;
             }
@@ -184,6 +184,8 @@ public class PendulumActivity extends AppCompatActivity {
                 a2_vel += a2_acc;
                 a1 += a1_vel;
                 a2 += a2_vel;
+                a1_vel *= 0.998;  // slow things down a bit over time
+                a2_vel *= 0.998;  // slow things down a bit over time
 
                 // Calculate the (x,y) of pendulum#1 given current angle (adjust for anchor point)
                 x1 = anchorX + (float) (r1 * Math.sin(a1));
@@ -194,13 +196,13 @@ public class PendulumActivity extends AppCompatActivity {
                 y2 = y1 + (float) (r2 * Math.cos(a2));
 
                 // Add to the historical path array [keeping most recent at the front]
-                for (int i=path.length-3; i >= 0; i--) {
-                    path[i+2]=path[i+1];
-                    path[i+1]=path[i];
+                for (int i=path.length-4; i >= 0; i--) {
+                    //if (path[i+3]+path[i+2]+path[i+1]+path[i]==0) {break;}
+                    path[i+3]=path[i+1];
+                    path[i+2]=path[i];
                 }
                 path[0]=x2;
                 path[1]=y2;
-
             }
         }
 
@@ -221,15 +223,21 @@ public class PendulumActivity extends AppCompatActivity {
 
                 if (movingPendulum != 0) {
                     paintPendulum.setAlpha(120);
+                    paintPendulumLine.setAlpha(120);
                     if (movingPendulum == 1) {
                         canvas.drawCircle(tmpX, tmpY, m1, paintPendulum);
+                        canvas.drawLine(anchorX, anchorY, tmpX, tmpY, paintPendulumLine);
+                        canvas.drawLine(tmpX, tmpY, x2, y2, paintPendulumLine);
                     } else {
                         canvas.drawCircle(tmpX, tmpY, m2, paintPendulum);
+                        canvas.drawLine(x1, y1, tmpX, tmpY, paintPendulumLine);
                     }
                     paintPendulum.setAlpha(255);
+                    paintPendulumLine.setAlpha(255);
+
                 }
 
-                if (path.length > 0) {
+                if (movingPendulum == 0) {
                     canvas.drawPoints(path,paintPath);
                 }
             }
@@ -276,13 +284,13 @@ public class PendulumActivity extends AppCompatActivity {
                 if (handler == null) {  // touched screen before "START" button
                     actionButton();     // then mimic the action button being pressed...
                 }
-                // Check if pressed on pendulum1
-                if (Math.abs((event.getX() - x1)) <= m1 && Math.abs((event.getY() - y1)) <= m1) {
+                // Check if pressed on pendulum1 (check for double the radius to give chance to grab it!)
+                if (Math.abs((event.getX() - x1)) <= (m1*2) && Math.abs((event.getY() - y1)) <= (m1*2)) {
                     Log.i(TAG, "TOUCH_DOWN on Pendulum#1");
                     movingPendulum = 1;
                 }
 
-                if (Math.abs((event.getX() - y1)) <= m2 && Math.abs((event.getY() - y2)) <= m2) {
+                if (Math.abs((event.getX() - x2)) <= (m2*2) && Math.abs((event.getY() - y2)) <= (m2*2)) {
                     Log.i(TAG, "TOUCH_DOWN on Pendulum#2");
                     movingPendulum = 2;
                 }
@@ -299,12 +307,21 @@ public class PendulumActivity extends AppCompatActivity {
                 if (movingPendulum == 1) {
                     x1 = event.getX();
                     y1 = event.getY();
+                    //reset the new angles and lengths formed - from the anchor point
+                    a1 = Math.atan2(x1-anchorX, y1-anchorY);
+                    a2 = Math.atan2(x2-x1, y2-y1);
+                    r1 = Math.sqrt(Math.pow(x1-anchorX,2) + Math.pow(y1-anchorY,2));
+                    r2 = Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
                 }
                 if (movingPendulum == 2) {
                     x2 = event.getX();
                     y2 = event.getY();
+                    //reset the new angle formed - from the first pendulum point
+                    a2 = Math.atan2(x2-x1, y2-y1);
+                    r2 = Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
                 }
                 movingPendulum = 0;
+                path = new float[1000];
             } // UP
 
             return true;

@@ -1,9 +1,11 @@
 package com.spc.codingtrain;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -45,7 +47,16 @@ public class MainActivity extends AppCompatActivity {
                 break;
             default:
                 Log.i(TAG, "Unavailable feature: " + msg);
-                Toast.makeText(getApplicationContext(),"Unavailable feature: " + msg, LENGTH_SHORT).show();
+                Toast toast = Toast.makeText(getApplicationContext(),msg,LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP, 0,0);
+                if (button.getCurrentTextColor() == Color.RED) {
+                    button.setVisibility(View.GONE);
+                    toast.setText("Donkey! Still not available! Removing from menu...");
+                } else {
+                    button.setTextColor(Color.RED);
+                    toast.setText("Sorry, unavailable feature: " + msg);
+                }
+                toast.show();
                 break;
         }
 
