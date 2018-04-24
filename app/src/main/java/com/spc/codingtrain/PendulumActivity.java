@@ -320,8 +320,11 @@ public class PendulumActivity extends AppCompatActivity {
                     a2 = Math.atan2(x2-x1, y2-y1);
                     r2 = Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
                 }
-                movingPendulum = 0;
-                path = new float[1000];
+                if (movingPendulum > 0) {
+                    path = new float[1000];
+                    movingPendulum = 0;
+                };
+
             } // UP
 
             return true;

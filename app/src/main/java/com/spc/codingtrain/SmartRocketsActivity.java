@@ -37,7 +37,7 @@ public class SmartRocketsActivity extends AppCompatActivity {
     public static final int TARGET_SIZE = 25;
     List<RectF> barriers = new ArrayList<>();
     public static final int BARRIER_SIZE = 25;
-    public static final int POPULATION_SIZE = 5;
+    public static final int POPULATION_SIZE = 20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -252,6 +252,8 @@ public class SmartRocketsActivity extends AppCompatActivity {
         List<Rocket> rockets = new ArrayList<>();
         List<Rocket> matingPool = new ArrayList<>();
         double maxFitness = 0;
+        double minFitness = 0;
+        int mutatedRocketsCount;
         Paint paintText, paintSummary;
         String msg;
         int perCent = 0;
@@ -264,9 +266,11 @@ public class SmartRocketsActivity extends AppCompatActivity {
             paintSummary.setTextSize(100);
             paintSummary.setColor(Color.LTGRAY);
             paintSummary.setAlpha(128);
-            // create the population and position halfway along bottom of screen.
+            // create the population and position roughly halfway along bottom of screen.
+            Random r = new Random();
             for (int i = 0; i < size; i++) {
-                this.rockets.add(new Rocket(myCanvasView.myWidth / 2, myCanvasView.myHeight));
+                int offset = r.nextInt(30) - 15;
+                this.rockets.add(new Rocket((myCanvasView.myWidth / 2) + offset, myCanvasView.myHeight));
             }
 
         }
@@ -289,7 +293,7 @@ public class SmartRocketsActivity extends AppCompatActivity {
             }
             msg = "Rockets:" + this.rockets.size();
             if (barriers.size() > 0) {
-                msg = msg + "/Barriers=" + barriers.size();
+                msg = msg + "/Barriers:" + barriers.size();
             }
             canvas.drawText(msg, 20, 50, paintText);
 
@@ -300,11 +304,15 @@ public class SmartRocketsActivity extends AppCompatActivity {
             }
             canvas.drawText(msg, 20, 75, paintText);
 
-            msg = "MaxFitness=" + ((double) Math.round(this.maxFitness * 100000) / 100000);
+            msg = "Fitness: Max=" + ((double) Math.round(this.maxFitness * 1000000) / 1000000);
+            msg = msg+ "/Min="+ ((double) Math.round(this.minFitness * 1000000 / 1000000));
             canvas.drawText(msg, 20, 100, paintText);
 
             msg = "Mating Pool Size="+this.matingPool.size();
             canvas.drawText(msg, 20, 125, paintText);
+
+            msg = "Generation Mutation Rate="+(this.mutatedRocketsCount * 100)/this.rockets.size()+"%";
+            canvas.drawText(msg, 20, 150, paintText);
 
             if (actCount == 0) {  // only change it at end of generation
                 perCent = (hitCount * 100) / this.rockets.size();
@@ -315,10 +323,14 @@ public class SmartRocketsActivity extends AppCompatActivity {
 
         public void evaluate() {
             this.maxFitness = 0;
+            this.minFitness = 0;
             for (Rocket r : this.rockets) {
                 r.calcFitness();
                 if (r.fitness > this.maxFitness) {
                     this.maxFitness = r.fitness;
+                }
+                if (r.fitness < this.minFitness) {
+                    this.minFitness = r.fitness;
                 }
             }
             // Normalise the fitness numbers, then reward for hitting target, and punish for missing
@@ -342,18 +354,20 @@ public class SmartRocketsActivity extends AppCompatActivity {
         public void selection() {
             Random random = new Random();
             List<Rocket> newRockets = new ArrayList<>();
-            int count = 0 ;
+            this.mutatedRocketsCount = 0 ;
             for (Rocket r : this.rockets) {
                 DNA parentA = this.matingPool.get(random.nextInt(this.matingPool.size())).dna;
                 DNA parentB = this.matingPool.get(random.nextInt(this.matingPool.size())).dna;
                 DNA child = parentA.crossOver(parentB);
-                if (random.nextInt(100) < 5) {
-                    child.mutation();   // Mutate the resultant child DNA ~5% of time
-                    count++;
+                int mutate_rate = 5; // Mutate the resultant child DNA ~5% of time
+                if (r.hitBarrier) {mutate_rate = 10;}  // unless it had hit a barrier, then force 10% mutation
+                if (random.nextInt(100) < mutate_rate) {
+                    child.mutation();
+                    this.mutatedRocketsCount++;
                 }
                 newRockets.add(new Rocket(myCanvasView.myWidth / 2, myCanvasView.myHeight, child));
             }
-            Log.i(TAG, "Gen:"+generation+" /Mutated "+count+" children out of "+this.rockets.size());
+            // Log.i(TAG, "Gen:"+generation+" /Mutated "+count+" children out of "+this.rockets.size());
             this.rockets = newRockets;
         }
 
@@ -370,7 +384,7 @@ public class SmartRocketsActivity extends AppCompatActivity {
     class DNA {
         List<Point2D> genes = new ArrayList<>();
         Random random = new Random();
-        final int DNA_SIZE = 9;     // Sets magnitude of velocity
+        final int DNA_SIZE = 5;     // Sets magnitude of velocity (9 looked too 'jumpy')
 
         // Constructor to create new gene set - random genes added
         DNA(int lifespan) {
@@ -388,27 +402,27 @@ public class SmartRocketsActivity extends AppCompatActivity {
         // Cross-over this DNA gene string, by randomly picking from either parent.
         public DNA crossOver(DNA otherParent) {
             List<Point2D> newGenes = new ArrayList<>();
-            int count = 0;
+            // int count = 0;
             for (int i = 0; i < this.genes.size(); i++) {
                 if (random.nextInt(2) == 0) {  // returns 0 or 1
                     newGenes.add(this.genes.get(i));  // if 0
                 } else {
                     newGenes.add(otherParent.genes.get(i));  // if 1
-                    count++;
+                //    count++;
                 }
             }
             //Log.i(TAG, "Crossed over "+count+" genes from otherParent - out of "+this.genes.size());
             return new DNA(newGenes);
         }
 
-        // Mutate this DNA gene string, by creating new random genes ~10% of the time
+        // Mutate this DNA gene string, by creating new random genes ~5% of the time
         public void mutation () {
-            int count = 0;
+            // int count = 0;
             for (int i = 0; i < this.genes.size(); i++) {
                 if (random.nextInt(100) < 5) { // returns 0-99, only mutate < 5
                     this.genes.set(i, new Point2D(random.nextInt(DNA_SIZE) - DNA_SIZE/2,
                             random.nextInt(DNA_SIZE) - DNA_SIZE/2));
-                    count++;
+                //    count++;
                 }
             }
             //Log.i(TAG, "Mutated "+count+" genes out of "+this.genes.size());
@@ -420,8 +434,8 @@ public class SmartRocketsActivity extends AppCompatActivity {
         Point2D vel;
         Point2D acc;
         DNA dna;
-        int height = 14;
-        int width = 5;
+        int height = 25;
+        int width = 8;
         double fitness = 0;
         boolean outOfBounds;
         boolean hitBarrier;
@@ -487,13 +501,14 @@ public class SmartRocketsActivity extends AppCompatActivity {
         }
 
         void show(Canvas canvas) {
-            canvas.save();
+            /*canvas.save();
             Log.i(TAG,"Rotate: POS: "+this.pos.getX()+","+this.pos.getY()+" angle="+this.pos.angle() );
             Log.i(TAG,"     Rotate: VEL: "+this.vel.getX()+","+this.vel.getY()+" angle="+this.vel.angle() );
             canvas.rotate(this.vel.angle()); //take the angle of the velocity!
+            */
             canvas.drawRect(this.pos.getX() - width, this.pos.getY() - height,
                     this.pos.getX() + width, this.pos.getY() + height, this.paint);
-            canvas.restore();
+            /*canvas.restore();*/
         }
     }
 

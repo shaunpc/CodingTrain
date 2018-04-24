@@ -12,15 +12,15 @@
     <string name="button9">Mitosis Simulation</string>
     <string name="button10">Really cool thing...</string>
 
-    <string name="title_activity_opengl">OpenGL Activity</string>
-    <string name="title_activity_canvas">Canvas Activity</string>
-    <string name="title_activity_fireworks">Fireworks Activity</string>
-    <string name="title_activity_metaballs">Metaballs Activity</string>
-    <string name="title_activity_smartrockets">Smart Rockets Activity</string>
-    <string name="title_activity_pendulum">Double Pendulum Activity</string>
-    <string name="title_activity_snakes">Snakes and Ladders Activity</string>
-    <string name="title_activity_circlepack">Circle Packing Activity</string>
-    <string name="title_activity_mitosis">Mitosis Simulation Activity</string>
+    <string name="title_activity_opengl">OpenGL Testing</string>
+    <string name="title_activity_canvas">Canvas Testing</string>
+    <string name="title_activity_fireworks">Fireworks</string>
+    <string name="title_activity_metaballs">Metaballs</string>
+    <string name="title_activity_smartrockets">Smart Rockets</string>
+    <string name="title_activity_pendulum">Double Pendulum</string>
+    <string name="title_activity_snakes">Snakes and Ladders</string>
+    <string name="title_activity_circlepack">Circle Packing</string>
+    <string name="title_activity_mitosis">Mitosis Simulation</string>
 
     <string name="action_button_done">DONE</string>
     <string name="action_button_start">START</string>

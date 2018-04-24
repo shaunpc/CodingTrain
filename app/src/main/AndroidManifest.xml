@@ -69,6 +69,9 @@
         </activity>
         <activity android:name=".PendulumActivity"
             android:label="@string/title_activity_pendulum"/>
+        <activity android:name=".SnakesAndLadders"
+            android:label="@string/title_activity_snakes"
+            android:screenOrientation="portrait"/>
 
     </application>
 

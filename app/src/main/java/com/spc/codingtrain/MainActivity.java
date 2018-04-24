@@ -45,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button6: // Double Pendulum
                 intent = new Intent(MainActivity.this, PendulumActivity.class);
                 break;
+            case R.id.button7: // Snakes & Ladders
+                intent = new Intent(MainActivity.this, SnakesAndLadders.class);
+                break;
             default:
                 Log.i(TAG, "Unavailable feature: " + msg);
                 Toast toast = Toast.makeText(getApplicationContext(),msg,LENGTH_SHORT);
