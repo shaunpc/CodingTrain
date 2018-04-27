@@ -1,6 +1,8 @@
 package com.spc.codingtrain;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -26,6 +28,12 @@ public class SnakesAndLadders extends AppCompatActivity {
     private String action = "START";
     Button btnAction;
     MyCanvasView myCanvasView;
+    //state types
+    public final int ROLL = 0;
+    public final int MOVE = 1;
+    public final int SLIDE = 2;
+    public final int FINISHED = 3;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +74,7 @@ public class SnakesAndLadders extends AppCompatActivity {
         rLayout.addView(myCanvasView, cParams);
 
         setContentView(rLayout);
-        Log.i(TAG,"OnCreate completed");
+        Log.i(TAG, "OnCreate completed");
     }
 
     void actionButton() {
@@ -85,11 +93,12 @@ public class SnakesAndLadders extends AppCompatActivity {
         public Paint paintCanvas, paintText;
         boolean started = false;
         private Handler handler;
-        private static final int FRAME_RATE = 500 ; // 1000 = 1 per sec; 20 = 50 frames per sec
+        private static final int FRAME_RATE = 1000; // 1000 = 1 per sec; 20 = 50 frames per sec
         int columns = 10;    // Size of the playing board
         int rows = 10;
         int tileSize;
         int gameCount = 1;
+        int state = ROLL;
         float averageRolls = 0;
         List<Tile> tiles = new ArrayList<>();
         Player player = new Player();
@@ -103,6 +112,7 @@ public class SnakesAndLadders extends AppCompatActivity {
             paintText = new Paint();
             paintText.setTextSize(25);
             paintText.setColor(Color.WHITE);
+
         }
 
         private Runnable updateFrame = new Runnable() {
@@ -111,7 +121,7 @@ public class SnakesAndLadders extends AppCompatActivity {
                 handler.removeCallbacks(updateFrame);
                 // KEY FUNCTION CALL - but only when window is ready!
                 if (myCanvasView != null) {
-                    if (myCanvasView.getWidth()!=0) {
+                    if (myCanvasView.getWidth() != 0) {
                         updateMyCanvas();
                         myCanvasView.invalidate();
                     }
@@ -130,17 +140,18 @@ public class SnakesAndLadders extends AppCompatActivity {
         }
 
         //TEMPLATE - KEY FUNCTION - apply any changes to each construct
-        private void updateMyCanvas () {
+        private void updateMyCanvas() {
 
             if (!started) {   // Initiate key items the very first time
 
-                tileSize = Math.min(myCanvasView.getWidth()/columns, myCanvasView.getHeight()/rows);
+                tileSize = Math.min(myCanvasView.getWidth() / columns, myCanvasView.getHeight() / rows);
                 tileSize = Math.min(tileSize, 100);
-                Log.i(TAG, "Tile Size will be "+tileSize);
+                Log.i(TAG, "Tile Size will be " + tileSize);
 
-                int x = (myCanvasView.getWidth() - (columns * tileSize))/2;
-                int y = myCanvasView.getHeight() - (myCanvasView.getHeight() - (rows * tileSize))/2;
+                int x = (myCanvasView.getWidth() - (columns * tileSize)) / 2;
+                int y = myCanvasView.getHeight() - (myCanvasView.getHeight() - (rows * tileSize)) / 2;
 
+                // create the board
                 int dir = 1;
                 int num = 0;
                 for (int i = 0; i < columns; i++) {
@@ -155,17 +166,69 @@ public class SnakesAndLadders extends AppCompatActivity {
                         }
                     }
                 }
-                started=true;
-            } else {
-                // Perform ongoing updates
-                if (player.spot >= tiles.size()) {
-                    player.spot = tiles.size() - 1;
-                    averageRolls = ((averageRolls * gameCount)+player.rolls.size())/(gameCount+1);
-                    gameCount++;
-                    player.reset();
 
-                } else {
-                    player.roll();
+                Random r = new Random();
+                int fromTileIndex;
+                int toTileIndex;
+                int links = Math.round(((columns * rows) / (columns + rows)) * 0.8f);
+                // add the snake starting points (number is somewhat dependent on board size)
+                for (int i = 0; i < links; i++) {
+                    fromTileIndex = r.nextInt(tiles.size() - columns - 1) + columns;
+                    toTileIndex = r.nextInt(fromTileIndex-fromTileIndex%columns - 1) + 1;
+                    Log.i(TAG, "Snake added from " + fromTileIndex + " to " + toTileIndex);
+                    tiles.get(fromTileIndex).setSnadder (tiles.get(toTileIndex), true);
+                }
+                // add the ladder starting points (number is somewhat dependent on board size)
+                // TODO - improve neatness of this random placement...
+                //      - eg don't let cross, never sideways, endpoints can't be startpoints, etc
+                for (int i = 0; i < links; i++) {
+                    fromTileIndex = r.nextInt(tiles.size() - columns - 1) + 1;
+                    toTileIndex = r.nextInt(tiles.size() - fromTileIndex - fromTileIndex%columns) + fromTileIndex;
+                    Log.i(TAG, "Ladder added from " + fromTileIndex + " to " + toTileIndex);
+                    tiles.get(fromTileIndex).setSnadder (tiles.get(toTileIndex), false);
+                }
+                started = true;
+
+            } else {
+
+                // Perform ongoing updates
+                switch (state) {
+                    case FINISHED:
+                        averageRolls = ((averageRolls * gameCount) + player.rolls.size()) / (gameCount + 1);
+                        gameCount++;
+                        player.reset();
+                        state = ROLL;
+                        break;
+                    case ROLL:
+                        player.roll();
+                        state = MOVE;
+                        break;
+                    case MOVE:
+                        player.move();   // adjust if overshot
+                        if (player.spot >= tiles.size() - 1) {
+                            player.spot = Math.min(player.spot, tiles.size() - 1);
+                            state = FINISHED;
+                            break;
+                        }
+                        if (tiles.get(player.spot).snadder != null) {
+                            state = SLIDE;
+                            break;
+                        }
+                        state = ROLL;
+                        break;
+                    case SLIDE:
+                        Log.i(TAG, "Player landed on snake/ladder at " + player.spot);
+                        int endpoint = tiles.get(player.spot).snadder.index;
+                        if (player.spot > endpoint) {
+                            player.snakeHits++;
+                        } else {
+                            player.ladderHits++;
+                        }
+                        player.spot = tiles.get(player.spot).snadder.index;
+                        state = ROLL;
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -183,24 +246,45 @@ public class SnakesAndLadders extends AppCompatActivity {
             // display info
             String msg = "Game count:" + gameCount;
             canvas.drawText(msg, 20, 25, paintText);
-
-            // display info
-            msg = "Average Rolls to win:" + averageRolls ;
+            msg = "Average Rolls to win:" + averageRolls;
             canvas.drawText(msg, 20, 50, paintText);
-
-            // display info
             if (player.rolls != null) {
-                msg = "Current Game Rolls ("+player.rolls.size()+"):" + player.allRolls() ;
+                msg = "Current Game:";
                 canvas.drawText(msg, 20, 75, paintText);
+                msg = "   Rolls (" + player.rolls.size() + "):" + player.allRolls();
+                canvas.drawText(msg, 20, 100, paintText);
+                msg = "   Snake/Ladder Hits: " + player.snakeHits + "/" + player.ladderHits;
+                canvas.drawText(msg, 20, 125, paintText);
             }
 
-
+            // display the board
             for (Tile t : tiles) {
-                t.show (canvas);
-                if (t.index == player.spot) {
-                    player.show(canvas, t);
+                t.show(canvas);
+            }
+
+            // display the snakes & ladders
+            for (Tile t : tiles) {
+                if (t.snadder != null) {
+                    t.showLink(canvas, false);
                 }
             }
+
+            // highlight move...
+            if (state == MOVE) {
+                int count = 1;
+                while (count <= player.dice && (player.spot+count) < tiles.size()) {
+                    tiles.get(player.spot+count).highlight(canvas);
+                    count++;
+                }
+            }
+
+            // highlight slide...
+            if (state == SLIDE) {
+                tiles.get(player.spot).showLink(canvas, true);
+            }
+
+            // display the player  (always last, so on top visually)
+            player.show(canvas, tiles.get(player.spot));
         }
 
         @Override
@@ -243,33 +327,39 @@ public class SnakesAndLadders extends AppCompatActivity {
     class Player {
         int spot;
         List<Integer> rolls;
-
+        Integer dice;   // the last random dice number rolled
         Paint paintPlayer; // paint to use on this square
+        Random r = new Random();
+        int snakeHits, ladderHits;
 
-        Player () {
+        Player() {
             this.reset();
         }
 
-        void reset () {
+        void reset() {
             this.spot = 0;  // everyone starts at position ZERO
             this.paintPlayer = new Paint();
             this.paintPlayer.setStyle(Paint.Style.FILL);
-            this.paintPlayer.setColor(Color.RED);
+            this.paintPlayer.setColor(Color.BLUE);
             this.rolls = new ArrayList<>();
+            this.dice = 0;
+            this.snakeHits = 0;
+            this.ladderHits = 0;
         }
 
-        void roll () {
-            Random r = new Random();
-            Integer dice = r.nextInt(6) + 1; // returns 1-6
-            this.spot = this.spot + dice;
-            Log.i(TAG,"Player rolled a "+dice);
-            this.rolls.add(dice);
+        void roll() {
+            this.dice = this.r.nextInt(6) + 1; // returns 1-6;
+        }
+
+        void move() {
+            this.spot = this.spot + this.dice;
+            this.rolls.add(this.dice);  // store in the dice roll history for this game
         }
 
 
-        String allRolls () {
-            StringBuilder msg = new StringBuilder (100);
-            for (Integer i: this.rolls) {
+        String allRolls() {
+            StringBuilder msg = new StringBuilder(100);
+            for (Integer i : this.rolls) {
                 if (msg.length() == 0) {
                     msg.append(i);
                 } else {
@@ -280,9 +370,9 @@ public class SnakesAndLadders extends AppCompatActivity {
             return msg.toString();
         }
 
-        void show (Canvas canvas, Tile tile) {
+        void show(Canvas canvas, Tile tile) {
             canvas.drawOval(tile.getPlayerPos(), paintPlayer);
-            Log.i(TAG,"Player is on square "+tile.index);
+            // Log.i(TAG,"Player is on square "+tile.index);
         }
     }
 
@@ -290,42 +380,97 @@ public class SnakesAndLadders extends AppCompatActivity {
         int index;    // number of the tile
         int x, y;   // coords of bottom left corner of tile
         int sz;     // size of the square
+        RectF fullRect;  // the full Rectangle of this tile
+        RectF innerRect;  // the inner Rectangle of this tile
         Paint paintTile; // paint to use on this square
-        Tile nextTile;  // next tile after this... TODO
+        Tile snadder;  // if non-zero then slide or climb amount
+        Paint paintSnadder, paintHighlight; // paint to use when linking squares & highlighting
+        Bitmap bitmap; // to store snadder image
 
-        Tile (int index, int x, int y, int sz) {
+
+
+        Tile(int index, int x, int y, int sz) {
             this.index = index;
             this.x = x;
             this.y = y;
             this.sz = sz;
-            this.nextTile = null;
+            this.innerRect = new RectF(x + (sz / 4), y - (3 * sz / 4),
+                    x + (3 * sz / 4), y - (sz / 4));
+            this.fullRect = new RectF(x , y - sz,x + sz, y );
+            this.snadder = null;
+            this.bitmap = null;
 
             this.paintTile = new Paint();
             this.paintTile.setStyle(Paint.Style.FILL);
-            this.paintTile.setColor(Color.GREEN);
-            this.paintTile.setTextSize(this.sz/3);
+            this.paintTile.setColor(Color.YELLOW);
+            this.paintTile.setTextSize(this.sz / 3);
             if (this.index % 2 == 0) {
                 this.paintTile.setAlpha(100);
             } else {
                 this.paintTile.setAlpha(255);
             }
 
-            // Log.i(TAG,"Tile "+this.num + " at ("+x+","+y+")");
+            this.paintSnadder = new Paint();
+            this.paintSnadder.setStyle(Paint.Style.FILL_AND_STROKE);
+
+            this.paintHighlight = new Paint();
+            this.paintHighlight.setStyle(Paint.Style.FILL);
+            this.paintHighlight.setColor(Color.GREEN);
+            this.paintHighlight.setAlpha(100);
         }
 
-        RectF getPlayerPos () {
-            return new RectF(this.x + (this.sz/4),this.y- (3*this.sz/4),
-                    this.x+ (3*this.sz/4),this.y - (this.sz/4));
+        RectF getPlayerPos() {
+            return this.innerRect;
         }
 
-        Point2D getTextPos () {
-            return new Point2D(this.x+this.sz/3, this.y-this.sz/3);
+        Point2D getTextPos() {
+            return new Point2D(this.x + this.sz / 3, this.y - this.sz / 3);
         }
 
-        void show (Canvas canvas) {
+        Point2D getCentre() {
+            return new Point2D(this.x + this.sz / 2, this.y - this.sz / 2);
+        }
 
-            canvas.drawRect(this.x, this.y, this.x + this.sz, this.y - this.sz, this.paintTile);
-            canvas.drawText(Integer.toString(this.index),this.getTextPos().getX(),this.getTextPos().getY(), paintTile);
+        void setSnadder (Tile toTile, boolean snake) {
+            this.snadder = toTile;
+            if (snake) {
+                this.bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.snake);
+            } else {
+                this.bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ladder);
+            }
+        }
+
+        void showLink(Canvas canvas, boolean highlight) {
+            this.paintSnadder.setStrokeWidth(6);
+            if (highlight) { this.paintSnadder.setStrokeWidth(10);}
+
+            if (this.snadder.index < this.index) {
+                this.paintSnadder.setColor(Color.RED);
+            }
+            if (this.snadder.index > this.index) {
+                paintSnadder.setColor(Color.GREEN);
+            }
+            canvas.drawLine(this.getCentre().getX(), this.getCentre().getY(),
+                    this.snadder.getCentre().getX(), this.snadder.getCentre().getY(),
+                    this.paintSnadder);
+            canvas.drawBitmap(this.bitmap, null, this.fullRect, null );
+        }
+
+        void show(Canvas canvas) {
+            if (this.index % 2 == 0) {
+                this.paintTile.setAlpha(100);
+            } else {
+                this.paintTile.setAlpha(255);
+            }
+            canvas.drawRect(this.fullRect, this.paintTile);
+            if (this.snadder == null) { // place tile number if not at start of a slide
+                canvas.drawText(Integer.toString(this.index), this.getTextPos().getX(), this.getTextPos().getY(), this.paintTile);
+            }
+
+        }
+
+        void highlight(Canvas canvas) {
+            canvas.drawRect(this.getPlayerPos(), this.paintHighlight);
         }
     }
 }
