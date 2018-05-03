@@ -24,6 +24,8 @@
 
     <string name="action_button_done">DONE</string>
     <string name="action_button_start">START</string>
+    <string name="enter_text_button">Enter Text</string>
+    <string name="image_button">Choose Image</string>
     <string name="key_info">KEY INFO</string>
     <string name="log_info">LOG INFO</string>
 

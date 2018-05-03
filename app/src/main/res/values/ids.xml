@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item type="id" name="action_button_id"/>
+    <item type="id" name="image_button_id"/>
+    <item type="id" name="entertext_button_id"/>
     <item type="id" name="canvas_view_id"/>
 
 </resources>

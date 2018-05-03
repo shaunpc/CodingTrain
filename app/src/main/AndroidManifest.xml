@@ -73,7 +73,9 @@
             android:label="@string/title_activity_snakes"
             android:screenOrientation="portrait"/>
         <activity android:name=".CirclePackingActivity"
-            android:label="@string/title_activity_circlepack"/>
+            android:label="@string/title_activity_circlepack"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
 
     </application>
 
