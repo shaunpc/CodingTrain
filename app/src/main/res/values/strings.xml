@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Coding Train</string>
-    <string name="intro">This is a collection of coding challenges from the Coding Train YouTube series</string>
+    <string name="intro">This is a collection of coding challenges from the <![CDATA[<a href="http://www.youtube.com/user/shiffman/featured">Coding Train</a>]]> YouTube series</string>
     <string name="button1">OpenGL Basics</string>
     <string name="button2">Canvas Basics</string>
     <string name="button3">Fireworks</string>
@@ -10,7 +10,17 @@
     <string name="button7">Snakes and Ladders</string>
     <string name="button8">Circle Packing</string>
     <string name="button9">Mitosis Simulation</string>
-    <string name="button10">Really cool thing...</string>
+    <string name="button10">Really cool things\u2026</string>
+    <string name="button11">Langton\'s Ant</string>
+    <string name="button12">Phyllotaxis</string>
+    <string name="button13">Perlin Noise</string>
+    <string name="button14">Maze Generator</string>
+    <string name="button15">Terrain Generator</string>
+    <string name="button16">Fractal Trees</string>
+    <string name="button17">Circle Morphing</string>
+    <string name="button18">TBA</string>
+    <string name="button19">TBA</string>
+    <string name="button20">More cool things\u2026</string>
 
     <string name="title_activity_opengl">OpenGL Testing</string>
     <string name="title_activity_canvas">Canvas Testing</string>
@@ -21,6 +31,14 @@
     <string name="title_activity_snakes">Snakes and Ladders</string>
     <string name="title_activity_circlepack">Circle Packing</string>
     <string name="title_activity_mitosis">Mitosis Simulation</string>
+    <string name="title_activity_langton">Langton\'s Ant</string>
+    <string name="title_activity_phyllo">Phyllotaxis</string>
+    <string name="title_activity_mazegen">Maze Generator</string>
+    <string name="title_activity_terraingen">Terrain Generator</string>
+    <string name="title_activity_fractals">Fractal Trees</string>
+    <string name="title_activity_circmorph">Circle Morphing</string>
+    <string name="title_activity_tba18">TBA18</string>
+    <string name="title_activity_tba19">TBA19</string>
 
     <string name="action_button_done">DONE</string>
     <string name="action_button_start">START</string>

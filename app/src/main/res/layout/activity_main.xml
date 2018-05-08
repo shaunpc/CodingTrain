@@ -10,106 +10,194 @@
         android:id="@+id/textView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:text="@string/intro"
         android:textColor="@color/colorPrimaryDark"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/scrollView2"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/scrollView2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:orientation="vertical">
+            <Button
+                android:id="@+id/button10"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button10" />
+            <Button
+                android:id="@+id/button9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button9" />
+            <Button
+                android:id="@+id/button8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button8" />
+            <Button
+                android:id="@+id/button7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button7" />
+            <Button
+                android:id="@+id/button6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button6" />
+            <Button
+                android:id="@+id/button5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button5" />
+            <Button
+                android:id="@+id/button4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button4" />
+            <Button
+                android:id="@+id/button3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button3" />
+            <Button
+                android:id="@+id/button2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button2" />
+            <Button
+                android:id="@+id/button1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
+                android:onClick="buttonPress"
+                android:text="@string/button1" />
+        </LinearLayout>
+    </ScrollView>
 
     <ScrollView
         android:id="@+id/scrollView2"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/scrollView1"
         app:layout_constraintTop_toBottomOf="@+id/textView">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/colorAccent"
             android:orientation="vertical">
-
             <Button
-                android:id="@+id/button10"
+                android:id="@+id/button20"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button10" />
-
+                android:text="@string/button20" />
             <Button
-                android:id="@+id/button9"
+                android:id="@+id/button19"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button9" />
-
+                android:text="@string/button19" />
             <Button
-                android:id="@+id/button8"
+                android:id="@+id/button18"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button8" />
-
+                android:text="@string/button18" />
             <Button
-                android:id="@+id/button7"
+                android:id="@+id/button17"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button7" />
-
+                android:text="@string/button17" />
             <Button
-                android:id="@+id/button6"
+                android:id="@+id/button16"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button6" />
-
+                android:text="@string/button16" />
             <Button
-                android:id="@+id/button5"
+                android:id="@+id/button15"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button5" />
-
+                android:text="@string/button15" />
             <Button
-                android:id="@+id/button4"
+                android:id="@+id/button14"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button4" />
-
+                android:text="@string/button14" />
             <Button
-                android:id="@+id/button3"
+                android:id="@+id/button13"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button3" />
-
+                android:text="@string/button13" />
             <Button
-                android:id="@+id/button2"
+                android:id="@+id/button12"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button2" />
-
+                android:text="@string/button12" />
             <Button
-                android:id="@+id/button1"
+                android:id="@+id/button11"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="?android:attr/buttonStyleSmall"
                 android:onClick="buttonPress"
-                android:text="@string/button1" />
-
+                android:text="@string/button11" />
         </LinearLayout>
     </ScrollView>
 

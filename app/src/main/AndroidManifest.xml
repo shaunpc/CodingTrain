@@ -76,6 +76,10 @@
             android:label="@string/title_activity_circlepack"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.AppCompat.NoActionBar"/>
+        <activity android:name=".MitosisActivity"
+            android:label="@string/title_activity_mitosis"/>
+        <activity android:name=".LangtonsAnt"
+            android:label="@string/title_activity_langton"/>
 
     </application>
 
