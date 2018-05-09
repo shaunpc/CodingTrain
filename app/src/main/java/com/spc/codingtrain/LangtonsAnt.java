@@ -13,12 +13,14 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 
 public class LangtonsAnt extends AppCompatActivity {
 
     private static final String TAG = "ANT";
     private String action = "START";
     Button btnAction;
+    SeekBar seekbar;
     MyCanvasView myCanvasView;
     static final int UP = 0;
     static final int RIGHT = 1;
@@ -28,6 +30,8 @@ public class LangtonsAnt extends AppCompatActivity {
     int antCol;
     int antRow;
     int maxX, maxY;
+    int cellWidth;      // grabs from the seekbar...
+    boolean started = false;
     int cols, rows;
     int antMoves;
     Cell cells[][];
@@ -57,8 +61,36 @@ public class LangtonsAnt extends AppCompatActivity {
         RelativeLayout.LayoutParams btnParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         btnParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+        btnParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
         btnParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
         rLayout.addView(btnAction, btnParams);
+
+        // Next, add the SeekBar on the left of that "ACTION" button
+        seekbar  = new SeekBar(this);
+        seekbar.setId(R.id.seekbar_id);
+        // seekbar.setMin(10);
+        seekbar.setMax(80);
+        seekbar.setProgress(25);
+        seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onStartTrackingTouch( SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch( SeekBar seekBar) {
+                started = false;    // force a restart, which will get the progress value...
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
+        });
+        btnParams = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        btnParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+        btnParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+        btnParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+        btnParams.addRule(RelativeLayout.LEFT_OF, btnAction.getId());
+        btnParams.addRule(RelativeLayout.ALIGN_TOP,btnAction.getId());
+        rLayout.addView(seekbar, btnParams);
 
         // Then, fill the rest with the MyCanvasView class
         myCanvasView = new MyCanvasView(this);
@@ -67,6 +99,9 @@ public class LangtonsAnt extends AppCompatActivity {
         RelativeLayout.LayoutParams cParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         cParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+        cParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+        cParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+        cParams.addRule(RelativeLayout.ABOVE, seekbar.getId());
         cParams.addRule(RelativeLayout.ABOVE, btnAction.getId());
         rLayout.addView(myCanvasView, cParams);
 
@@ -87,7 +122,6 @@ public class LangtonsAnt extends AppCompatActivity {
 
     class MyCanvasView extends View {
         public Paint paintText;
-        boolean started = false;
         private Handler handler;
         private static final int FRAME_RATE = 5; // 1000 = 1 per sec; 20 = 50 frames per sec
 
@@ -131,7 +165,7 @@ public class LangtonsAnt extends AppCompatActivity {
                 // Create the bitmap to be used...
                 maxX = myCanvasView.getWidth();
                 maxY = myCanvasView.getHeight();
-                int cellWidth = Math.min(maxX,maxY)/100;
+                cellWidth = seekbar.getProgress() + 5;
                 cols = maxX / cellWidth;
                 rows = maxY / cellWidth;
                 cells = new Cell[cols][rows];
@@ -227,12 +261,14 @@ public class LangtonsAnt extends AppCompatActivity {
             }
 
             // display info on top...
-            String msg = "Ant Moves:" + antMoves;
+            String msg = "Cell Width:" + cellWidth;
             canvas.drawText(msg, 20, 25, paintText);
-            msg = "Ant Position: (" + antCol + "," + antRow + ")";
+            msg = "Ant Moves:" + antMoves;
             canvas.drawText(msg, 20, 50, paintText);
-            msg = "Ant Direction: " + direction;
+            msg = "Ant Position: (" + antCol + "," + antRow + ")";
             canvas.drawText(msg, 20, 75, paintText);
+            msg = "Ant Direction: " + direction;
+            canvas.drawText(msg, 20, 100, paintText);
 
             // highlight the ant
             cells[antCol][antRow].highlight(canvas);
@@ -279,6 +315,7 @@ public class LangtonsAnt extends AppCompatActivity {
         int x, y;   // screen coords of top-left corner
         int width;
         Paint paint;
+        Paint paintEdge;
         Paint highlight;
 
         Cell(int x, int y, int width) {
@@ -288,6 +325,10 @@ public class LangtonsAnt extends AppCompatActivity {
             this.paint = new Paint();
             this.paint.setColor(Color.WHITE);
             this.paint.setStyle(Paint.Style.FILL);
+            this.paintEdge = new Paint();
+            this.paintEdge.setColor(Color.CYAN);
+            this.paintEdge.setStyle(Paint.Style.STROKE);
+            this.paintEdge.setStrokeWidth(2);
             this.highlight = new Paint();
             this.highlight.setColor(Color.RED);
             this.highlight.setStyle(Paint.Style.FILL);
@@ -307,6 +348,7 @@ public class LangtonsAnt extends AppCompatActivity {
 
         void show(Canvas canvas) {
             canvas.drawRect(this.x, this.y, this.x + this.width, this.y + this.width, this.paint);
+            canvas.drawRect(this.x, this.y, this.x + this.width, this.y + this.width, this.paintEdge);
         }
 
         void highlight(Canvas canvas) {
