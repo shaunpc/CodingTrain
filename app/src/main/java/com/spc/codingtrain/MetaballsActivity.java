@@ -282,7 +282,7 @@ public class MetaballsActivity extends AppCompatActivity {
         }
 
         void show(Canvas canvas) {
-            canvas.drawCircle(this.pos.getX(), this.pos.getY(), this.radius, this.paint);
+            canvas.drawCircle((float)this.pos.getX(), (float) this.pos.getY(), this.radius, this.paint);
         }
     }
 }

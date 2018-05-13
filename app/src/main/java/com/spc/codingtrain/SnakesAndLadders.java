@@ -450,8 +450,8 @@ public class SnakesAndLadders extends AppCompatActivity {
             if (this.snadder.index > this.index) {
                 paintSnadder.setColor(Color.GREEN);
             }
-            canvas.drawLine(this.getCentre().getX(), this.getCentre().getY(),
-                    this.snadder.getCentre().getX(), this.snadder.getCentre().getY(),
+            canvas.drawLine((float) this.getCentre().getX(), (float) this.getCentre().getY(),
+                    (float) this.snadder.getCentre().getX(), (float) this.snadder.getCentre().getY(),
                     this.paintSnadder);
             canvas.drawBitmap(this.bitmap, null, this.fullRect, null );
         }
@@ -464,7 +464,7 @@ public class SnakesAndLadders extends AppCompatActivity {
             }
             canvas.drawRect(this.fullRect, this.paintTile);
             if (this.snadder == null) { // place tile number if not at start of a slide
-                canvas.drawText(Integer.toString(this.index), this.getTextPos().getX(), this.getTextPos().getY(), this.paintTile);
+                canvas.drawText(Integer.toString(this.index), (float) this.getTextPos().getX(), (float) this.getTextPos().getY(), this.paintTile);
             }
 
         }

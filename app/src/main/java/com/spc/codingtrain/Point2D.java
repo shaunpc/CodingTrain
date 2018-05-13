@@ -4,6 +4,11 @@ public class Point2D {
     private double x;
     private double y;
 
+    Point2D () {
+        this.x = 0;
+        this.y = 0;
+    }
+
     Point2D (double x, double y) {
         this.x = x;
         this.y = y;
@@ -14,9 +19,14 @@ public class Point2D {
         this.y += p.y;
     }
 
-    public void add (int xa, int ya) {
+    public void add (double xa, double ya) {
         this.x += xa;
         this.y += ya;
+    }
+
+    public void set (double x, double y) {
+        this.x = x;
+        this.y = y;
     }
 
     public void clear() {
@@ -29,17 +39,17 @@ public class Point2D {
         this.y *= p.y;
     }
 
-    public void mult (int xm, int ym) {
+    public void mult (double xm, double ym) {
         this.x *= xm;
         this.y *= ym;
     }
 
-    public float getX() {
-        return (float) this.x;
+    public double getX() {
+        return this.x;
     }
 
-    public float getY() {
-        return (float) this.y;
+    public double getY() {
+        return this.y;
     }
 
     public boolean inRangeX (double lower, double upper) {
@@ -60,5 +70,9 @@ public class Point2D {
 
     public double distance (int xd, int yd) {
         return Math.sqrt(Math.pow(this.x - xd, 2)+Math.pow(this.y - yd, 2));
+    }
+
+    public String toString () {
+        return "("+this.x+","+this.y+")";
     }
 }

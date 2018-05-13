@@ -32,7 +32,8 @@
     <string name="title_activity_circlepack">Circle Packing</string>
     <string name="title_activity_mitosis">Mitosis Simulation</string>
     <string name="title_activity_langton">Langton\'s Ant</string>
-    <string name="title_activity_phyllo">Phyllotaxis</string>
+    <string name="title_activity_phyllo">Phyllotaxis - Leaf Arrangement</string>
+    <string name="title_activity_perlin">Perlin Noise - Flow Field</string>
     <string name="title_activity_mazegen">Maze Generator</string>
     <string name="title_activity_terraingen">Terrain Generator</string>
     <string name="title_activity_fractals">Fractal Trees</string>

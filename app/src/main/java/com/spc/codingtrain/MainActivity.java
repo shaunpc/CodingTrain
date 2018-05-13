@@ -70,6 +70,12 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button11: // Langton's Ant
                 intent = new Intent(MainActivity.this, LangtonsAnt.class);
                 break;
+            case R.id.button12: // Phyllotaxis
+                intent = new Intent(MainActivity.this, Phyllotaxis.class);
+                break;
+            case R.id.button13: // Perlin Noise
+                intent = new Intent(MainActivity.this, PerlinNoise.class);
+                break;
             default:
                 Log.i(TAG, "Unavailable feature: " + msg);
                 Toast toast = Toast.makeText(getApplicationContext(),msg,LENGTH_SHORT);

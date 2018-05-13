@@ -506,8 +506,8 @@ public class SmartRocketsActivity extends AppCompatActivity {
             Log.i(TAG,"     Rotate: VEL: "+this.vel.getX()+","+this.vel.getY()+" angle="+this.vel.angle() );
             canvas.rotate(this.vel.angle()); //take the angle of the velocity!
             */
-            canvas.drawRect(this.pos.getX() - width, this.pos.getY() - height,
-                    this.pos.getX() + width, this.pos.getY() + height, this.paint);
+            canvas.drawRect((float) this.pos.getX() - width, (float) this.pos.getY() - height,
+                    (float) this.pos.getX() + width, (float) this.pos.getY() + height, this.paint);
             /*canvas.restore();*/
         }
     }

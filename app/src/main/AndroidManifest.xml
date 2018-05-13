@@ -79,8 +79,12 @@
         <activity android:name=".MitosisActivity"
             android:label="@string/title_activity_mitosis"/>
         <activity android:name=".LangtonsAnt"
-            android:label="@string/title_activity_langton"/>
-
+            android:label="@string/title_activity_langton"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".Phyllotaxis"
+            android:label="@string/title_activity_phyllo"/>
+        <activity android:name=".PerlinNoise"
+            android:label="@string/title_activity_perlin"/>
     </application>
 
 </manifest>
