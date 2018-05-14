@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import com.spc.library.MyColor;
+
 public class FireworksActivity extends AppCompatActivity {
 
     private static final String TAG = "FIREWORKS";
@@ -339,35 +341,4 @@ public class FireworksActivity extends AppCompatActivity {
         }
     }
 
-    class MyColor {
-        int r,g,b;
-        Random random = new Random();
-
-        MyColor (int r, int g, int b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-        }
-
-        MyColor () {
-            int COLOUR_BASE = 50;
-            // give a random colour
-            this.r = random.nextInt(255 - COLOUR_BASE) + COLOUR_BASE;
-            this.g = random.nextInt(255 - COLOUR_BASE) + COLOUR_BASE;
-            this.b = random.nextInt(255 - COLOUR_BASE) + COLOUR_BASE;
-        }
-
-        MyColor shift () {
-            int COLOUR_SHIFT = 20;
-            int newR = this.r + random.nextInt(COLOUR_SHIFT * 2) - COLOUR_SHIFT;
-            int newG = this.g + random.nextInt(COLOUR_SHIFT * 2) - COLOUR_SHIFT;
-            int newB = this.b + random.nextInt(COLOUR_SHIFT * 2) - COLOUR_SHIFT;
-            if (newR>=0 && newR<=255) {newR = this.r;}
-            if (newG>=0 && newG<=255) {newG = this.g;}
-            if (newB>=0 && newB<=255) {newB = this.b;}
-            return new MyColor(newR, newG, newB);
-
-        }
-
-    }
 }

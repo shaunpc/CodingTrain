@@ -30,7 +30,7 @@ public class LangtonsAnt extends AppCompatActivity {
     int antCol;
     int antRow;
     int maxX, maxY;
-    int cellWidth;      // grabs from the seekbar...
+    int cellWidth;      // grabs from the sbCellSize...
     boolean started = false;
     int cols, rows;
     int antMoves;
@@ -68,7 +68,7 @@ public class LangtonsAnt extends AppCompatActivity {
         // Next, add the SeekBar on the left of that "ACTION" button
         seekbar  = new SeekBar(this);
         seekbar.setId(R.id.seekbar_id);
-        // seekbar.setMin(10);
+        // sbCellSize.setMin(10);
         seekbar.setMax(80);
         seekbar.setProgress(25);
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {

@@ -21,6 +21,7 @@ import java.util.Random;
 
 import static java.lang.Math.sqrt;
 
+import com.spc.library.MyColor;
 
 public class MitosisActivity extends AppCompatActivity {
 
@@ -212,7 +213,7 @@ public class MitosisActivity extends AppCompatActivity {
                     if (c.inside(event.getX(), event.getY())) {
                         cells.add(c.mitosis());
                         break;
-                    };
+                    }
                 }
             } // DOWN
 

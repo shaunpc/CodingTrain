@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.spc.library.Point2D;
 
 public class MetaballsActivity extends AppCompatActivity {
 

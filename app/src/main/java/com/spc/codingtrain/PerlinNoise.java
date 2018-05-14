@@ -16,6 +16,8 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
 import com.spc.library.PerlinNoiseGenerator;
+import com.spc.library.MyColor;
+import com.spc.library.Point2D;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +28,10 @@ public class PerlinNoise extends AppCompatActivity {
     private static final String TAG = "PERLIN";
     String action = "START";
     Button btnAction;
-    SeekBar seekbar;
+    SeekBar sbCellSize, sbParticleCount;
     MyCanvasView myCanvasView;
     int maxX, maxY;
-    int cellWidth;      // grabs from the seekbar...
+    int cellWidth;      // grabs from the sbCellSize...
     boolean started = false;
     int cols, rows;
     Cell cells[][];
@@ -39,6 +41,8 @@ public class PerlinNoise extends AppCompatActivity {
     float xoff, yoff, zoff;
     List<Particle> particles = new ArrayList<>();
     Random r = new Random();
+    Boolean  displayForces = true;
+    Boolean  moveForces = true;
 
 
     @Override
@@ -70,17 +74,19 @@ public class PerlinNoise extends AppCompatActivity {
         rLayout.addView(btnAction, btnParams);
 
         // Next, add the SeekBar on the left of that "ACTION" button
-        seekbar  = new SeekBar(this);
-        seekbar.setId(R.id.seekbar_id);
-        seekbar.setMax(100);
-        seekbar.setProgress(50);
-        seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        sbCellSize = new SeekBar(this);
+        sbCellSize.setId(R.id.seekbar_id);
+        sbCellSize.setMax(140);
+        sbCellSize.setProgress(50);
+        sbCellSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onStartTrackingTouch( SeekBar seekBar) {}
 
             @Override
             public void onStopTrackingTouch( SeekBar seekBar) {
                 started = false;    // force a restart, which will get the progress value...
+                displayForces = true;
+                moveForces = true;
             }
 
             @Override
@@ -93,13 +99,40 @@ public class PerlinNoise extends AppCompatActivity {
         btnParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
         btnParams.addRule(RelativeLayout.LEFT_OF, btnAction.getId());
         btnParams.addRule(RelativeLayout.ALIGN_TOP,btnAction.getId());
-        rLayout.addView(seekbar, btnParams);
+        rLayout.addView(sbCellSize, btnParams);
 
+        // Next, add the Magic Angle SeekBar on the left of that "ACTION" button
+        sbParticleCount = new SeekBar(this);
+        sbParticleCount.setId(R.id.seekbar_magicangle_id);
+        sbParticleCount.setMax(500);
+        sbParticleCount.setProgress(50);
+        sbParticleCount.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                started = false;    // force a restart, which will get the progress value...
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
+        });
+        btnParams = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        btnParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+        btnParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+        btnParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+        btnParams.addRule(RelativeLayout.RIGHT_OF, btnAction.getId());
+        btnParams.addRule(RelativeLayout.ALIGN_TOP, btnAction.getId());
+        rLayout.addView(sbParticleCount, btnParams);
 
         // Then, fill the rest with the MyCanvasView class
         myCanvasView = new MyCanvasView(this);
         myCanvasView.setId(R.id.canvas_view_id);
-        myCanvasView.setBackgroundColor(Color.BLUE);
+        myCanvasView.setBackgroundColor(Color.WHITE);
         RelativeLayout.LayoutParams cParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         cParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
@@ -107,6 +140,21 @@ public class PerlinNoise extends AppCompatActivity {
         cParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
         cParams.addRule(RelativeLayout.ABOVE, btnAction.getId());
         rLayout.addView(myCanvasView, cParams);
+
+        myCanvasView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                displayForces = !displayForces;
+            }
+        });
+
+        myCanvasView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                moveForces = !moveForces;
+                return true;
+            }
+        });
 
         setContentView(rLayout);
         Log.i(TAG, "OnCreate completed");
@@ -136,7 +184,7 @@ public class PerlinNoise extends AppCompatActivity {
             super(context);
             paintText = new Paint();
             paintText.setTextSize(25);
-            paintText.setColor(Color.WHITE);
+            paintText.setColor(Color.BLACK);
         }
 
         private Runnable updateFrame = new Runnable() {
@@ -171,7 +219,7 @@ public class PerlinNoise extends AppCompatActivity {
                 // Create the basics
                 maxX = myCanvasView.getWidth();
                 maxY = myCanvasView.getHeight();
-                cellWidth = seekbar.getProgress() + 100;
+                cellWidth = sbCellSize.getProgress() + 10;
                 cols = (int) Math.ceil(maxX / cellWidth ) ;
                 rows = (int) Math.ceil(maxY / cellWidth ) ;
                 cells = new Cell[cols][rows];
@@ -201,7 +249,8 @@ rows = 4;*/
 
                 // Drop a few particle and give it initial nudge...
                 particles = new ArrayList<>();
-                for (int i = 0 ; i < 50; i++) {
+                int maxParticles = sbParticleCount.getProgress();
+                for (int i = 0 ; i < maxParticles; i++) {
                     Particle p = new Particle (r.nextInt(cols*cellWidth), r.nextInt(rows*cellWidth));
                     //p.applyForce(new Point2D((r.nextInt(50)-25)/cellWidth, (r.nextInt(50)-25)/cellWidth));
                     particles.add(p);
@@ -211,20 +260,22 @@ rows = 4;*/
 
             } else {
                 // Perform ongoing updates - Update the flow field
-/*
-                zoff += timeIncrement;
-                xoff = 0;
-                for (int i = 0; i < cols; i++) {
-                    yoff = 0;
-                    for (int j = 0; j < rows; j++) {
-                        cells[i][j].setVector(png.noise3(xoff,yoff,zoff) * 180f/0.866f, 5);
-                        cells[i][j].setColour((int) (png.noise3(xoff,yoff,zoff) * 128f/0.866f) + 128f/0.866f);
-                        //Log.i(TAG, "Cell ["+i+","+j+"] with "+cells[i][j].toString());
-                        yoff += noiseIncrement;
+
+                if (moveForces) {
+                    zoff += timeIncrement;
+                    xoff = 0;
+                    for (int i = 0; i < cols; i++) {
+                        yoff = 0;
+                        for (int j = 0; j < rows; j++) {
+                            cells[i][j].setVector(png.noise3(xoff,yoff,zoff) * 180f/0.866f, 5);
+                            // Set the colour "HUE" to be used 0 to 360
+                            cells[i][j].setColour((int) (png.noise3(xoff,yoff,zoff) * 180f/0.866f) + 180/0.866f);
+                            //Log.i(TAG, "Cell ["+i+","+j+"] with "+cells[i][j].toString());
+                            yoff += noiseIncrement;
+                        }
+                        xoff += noiseIncrement;
                     }
-                    xoff += noiseIncrement;
                 }
-*/
 
                 // update all the particles
                 for (Particle p : particles) {
@@ -254,10 +305,14 @@ rows = 4;*/
             }
 
             // display the cells first...
-            for (int i = 0; i < cols; i++) {
-                for (int j = 0; j < rows; j++) {
-                    cells[i][j].show(canvas);
-                    cells[i][j].showFlow(canvas);
+            if (displayForces) {
+                for (int i = 0; i < cols; i++) {
+                    for (int j = 0; j < rows; j++) {
+                        if (cellWidth > 50) {
+                            cells[i][j].show(canvas);
+                        }
+                        cells[i][j].showFlow(canvas);
+                    }
                 }
             }
 
@@ -279,6 +334,8 @@ rows = 4;*/
             canvas.drawText(msg, 20, 50, paintText);
             msg = "Particles="+particles.size();
             canvas.drawText(msg, 20, 75, paintText);
+            msg = "Flow Field visible="+displayForces+ "/moving="+moveForces;
+            canvas.drawText(msg, 20, 100, paintText);
 
         }
 
@@ -317,7 +374,6 @@ rows = 4;*/
             // MUST CALL THIS
             setMeasuredDimension(width, height);
         }
-
     }
 
 
@@ -335,8 +391,9 @@ rows = 4;*/
             this.width = width;
             this.paint = new Paint();
             this.paint.setStyle(Paint.Style.STROKE);
-            this.paint.setColor(Color.WHITE);   // default it
+            this.paint.setColor(Color.BLUE);   // default it
             this.paint.setTextSize(25);
+            this.paint.setAlpha(250);
             this.force = new Point2D();
         }
 
@@ -361,12 +418,15 @@ rows = 4;*/
         void setVector (float angle, int length) {
             this.angle = angle;  // In degrees
             this.force.set(length * Math.cos(Math.toRadians(this.angle)),
-                           length * Math.sin(Math.toRadians(this.angle)));
+                    length * Math.sin(Math.toRadians(this.angle)));
         }
 
         void setColour (float colour) {
             this.colour = colour;
-            this.paint.setColor(Color.HSVToColor(new float[]{colour, 255,255}));
+            // H = Hue, in range 0 (red).. 100 (green).. 230 (blue)... to 360 (red) again
+            // S = Saturation, in range 0 (white) to 100 (the H colour)
+            // V = Value/Brightness, in range 0 (darker) to 100 (lighter)
+            this.paint.setColor(Color.HSVToColor(new float[]{colour, 90,10}));
         }
 
         public String toString () {
@@ -380,18 +440,24 @@ rows = 4;*/
         Point2D acc;
         Paint paint;
         Point2D loc;
+        Point2D prevPos;
+        MyColor colour = new MyColor();  // fills with random colour
+
 
         Particle (int x, int y) {
             this.pos = new Point2D(x,y);
             this.vel = new Point2D();
             this.acc = new Point2D();
             this.loc = new Point2D();
+            this.prevPos = new Point2D(x,y);
             this.paint = new Paint();
             this.paint.setStyle(Paint.Style.FILL_AND_STROKE);
-            this.paint.setColor(Color.WHITE);   // default it
+            this.paint.setARGB(150, colour.r, colour.g, colour.b);
+            this.paint.setStrokeWidth(5);
         }
 
         void update () {
+            this.prevPos = this.pos;    // store current position as previous
             this.vel.add(this.acc);
             this.pos.add(this.vel);
             this.acc.clear();
@@ -401,10 +467,22 @@ rows = 4;*/
         void wrap (double mx, double my) {
             //wrap around screen
             // Log.i(TAG, "Checking wrap (max="+mx+","+my+") : " + this.pos.toString());
-            if (this.pos.getX() < 0) { this.pos.set (mx-1,this.pos.getY()); }
-            if (this.pos.getY() < 0) { this.pos.set (this.pos.getX(), my-1); }
-            if (this.pos.getX() > mx) { this.pos.set (0,this.pos.getY()); }
-            if (this.pos.getY() > my) { this.pos.set (this.pos.getX(),0); }
+            if (this.pos.getX() < 0) {
+                this.pos.set (mx-1,this.pos.getY());
+                this.prevPos = this.pos;
+            }
+            if (this.pos.getY() < 0) {
+                this.pos.set (this.pos.getX(), my-1);
+                this.prevPos = this.pos;
+            }
+            if (this.pos.getX() > mx) {
+                this.pos.set (0,this.pos.getY());
+                this.prevPos = this.pos;
+            }
+            if (this.pos.getY() > my) {
+                this.pos.set (this.pos.getX(),0);
+                this.prevPos = this.pos;
+            }
             // Log.i(TAG, "     done, now: " + this.pos.toString());
 
         }
@@ -419,6 +497,8 @@ rows = 4;*/
 
         void show (Canvas canvas) {
             canvas.drawCircle((float)this.pos.getX(),(float)this.pos.getY(),5,paint);
+            //canvas.drawLine((float) this.prevPos.getX(),(float) this.prevPos.getY(),
+            //        (float) this.pos.getX(),(float) this.pos.getY(),this.paint);
         }
     }
 
