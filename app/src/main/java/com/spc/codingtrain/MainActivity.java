@@ -76,6 +76,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button13: // Perlin Noise
                 intent = new Intent(MainActivity.this, PerlinNoise.class);
                 break;
+            case R.id.button14: // Maze Generation
+                intent = new Intent(MainActivity.this, MazeGenActivity.class);
+                break;
             default:
                 Log.i(TAG, "Unavailable feature: " + msg);
                 Toast toast = Toast.makeText(getApplicationContext(),msg,LENGTH_SHORT);

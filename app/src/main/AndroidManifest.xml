@@ -85,6 +85,8 @@
             android:label="@string/title_activity_phyllo"/>
         <activity android:name=".PerlinNoise"
             android:label="@string/title_activity_perlin"/>
+        <activity android:name=".MazeGenActivity"
+            android:label="@string/title_activity_mazegen"/>
     </application>
 
 </manifest>
