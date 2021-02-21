@@ -7,7 +7,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -128,7 +128,7 @@ public class SmartRocketsActivity extends AppCompatActivity {
 
         }
 
-        private Runnable updateFrame = new Runnable() {
+        private final Runnable updateFrame = new Runnable() {
             @Override
             public void run() {
                 handler.removeCallbacks(updateFrame);
@@ -153,12 +153,12 @@ public class SmartRocketsActivity extends AppCompatActivity {
             if (population == null) {
                 population = new Population(POPULATION_SIZE); // Create the initial population
                 lifespan_count = 0;  // reset lifespan counter for this population
-                targetCenter = new Point2D(myWidth / 2, myHeight / 20);
+                targetCenter = new Point2D(myWidth / 2.0, myHeight / 20.0);
                 target = new RectF( // set the target area rectangle
-                        myWidth / 2 - TARGET_SIZE * 2,
-                        myHeight / 20 - TARGET_SIZE,
-                        myWidth / 2 + TARGET_SIZE * 2,
-                        myHeight / 20 + TARGET_SIZE);
+                        (float) (myWidth / 2 - TARGET_SIZE * 2),
+                        (float) (myHeight / 20 - TARGET_SIZE),
+                        (float) (myWidth / 2 + TARGET_SIZE * 2),
+                        (float) (myHeight / 20 + TARGET_SIZE));
             } else {
                 if (lifespan_count == LIFESPAN_MAX) {
                     population.evaluate();  // Create the mating pool (based on those closest to target)
@@ -384,7 +384,7 @@ public class SmartRocketsActivity extends AppCompatActivity {
 
     // The DNA class basically contains the genes for a rocket's path - stored as a list of random
     // 2D points representing the velocity to be applied at each age step of the lifespan.
-    class DNA {
+    static class DNA {
         List<Point2D> genes = new ArrayList<>();
         Random random = new Random();
         final int DNA_SIZE = 5;     // Sets magnitude of velocity (9 looked too 'jumpy')
@@ -392,8 +392,8 @@ public class SmartRocketsActivity extends AppCompatActivity {
         // Constructor to create new gene set - random genes added
         DNA(int lifespan) {
             for (int i = 0; i < lifespan; i++) {
-                genes.add(new Point2D(random.nextInt(DNA_SIZE) - DNA_SIZE/2,
-                        random.nextInt(DNA_SIZE) - DNA_SIZE/2));
+                genes.add(new Point2D((random.nextInt(DNA_SIZE) - DNA_SIZE/2.0),
+                        (random.nextInt(DNA_SIZE) - DNA_SIZE/2.0)));
             }
         }
 
@@ -423,8 +423,8 @@ public class SmartRocketsActivity extends AppCompatActivity {
             // int count = 0;
             for (int i = 0; i < this.genes.size(); i++) {
                 if (random.nextInt(100) < 5) { // returns 0-99, only mutate < 5
-                    this.genes.set(i, new Point2D(random.nextInt(DNA_SIZE) - DNA_SIZE/2,
-                            random.nextInt(DNA_SIZE) - DNA_SIZE/2));
+                    this.genes.set(i, new Point2D((random.nextInt(DNA_SIZE) - DNA_SIZE/2.0),
+                            (random.nextInt(DNA_SIZE) - DNA_SIZE/2.0)));
                 //    count++;
                 }
             }

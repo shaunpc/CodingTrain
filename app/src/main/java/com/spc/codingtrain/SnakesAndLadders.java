@@ -9,7 +9,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -117,7 +117,7 @@ public class SnakesAndLadders extends AppCompatActivity {
 
         }
 
-        private Runnable updateFrame = new Runnable() {
+        private final Runnable updateFrame = new Runnable() {
             @Override
             public void run() {
                 handler.removeCallbacks(updateFrame);
@@ -172,7 +172,7 @@ public class SnakesAndLadders extends AppCompatActivity {
                 Random r = new Random();
                 int fromTileIndex;
                 int toTileIndex;
-                int links = Math.round(((columns * rows) / (columns + rows)) * 0.8f);
+                int links = Math.round((float) ((columns * rows) / (columns + rows)) * 0.8f);
                 // add the snake starting points (number is somewhat dependent on board size)
                 for (int i = 0; i < links; i++) {
                     fromTileIndex = r.nextInt(tiles.size() - columns - 1) + columns;
@@ -362,12 +362,10 @@ public class SnakesAndLadders extends AppCompatActivity {
         String allRolls() {
             StringBuilder msg = new StringBuilder(100);
             for (Integer i : this.rolls) {
-                if (msg.length() == 0) {
-                    msg.append(i);
-                } else {
+                if (msg.length() != 0) {
                     msg.append(",");
-                    msg.append(i);
                 }
+                msg.append(i);
             }
             return msg.toString();
         }
@@ -396,8 +394,8 @@ public class SnakesAndLadders extends AppCompatActivity {
             this.x = x;
             this.y = y;
             this.sz = sz;
-            this.innerRect = new RectF(x + (sz / 4), y - (3 * sz / 4),
-                    x + (3 * sz / 4), y - (sz / 4));
+            this.innerRect = new RectF((float) (x + (sz / 4.0)), (float) (y - (3 * sz / 4)),
+                    (float) (x + (3 * sz / 4)), (float) (y - (sz / 4)));
             this.fullRect = new RectF(x , y - sz,x + sz, y );
             this.snadder = null;
             this.bitmap = null;
@@ -405,7 +403,7 @@ public class SnakesAndLadders extends AppCompatActivity {
             this.paintTile = new Paint();
             this.paintTile.setStyle(Paint.Style.FILL);
             this.paintTile.setColor(Color.YELLOW);
-            this.paintTile.setTextSize(this.sz / 3);
+            this.paintTile.setTextSize((int) (this.sz / 3.0));
             if (this.index % 2 == 0) {
                 this.paintTile.setAlpha(100);
             } else {
@@ -426,11 +424,11 @@ public class SnakesAndLadders extends AppCompatActivity {
         }
 
         Point2D getTextPos() {
-            return new Point2D(this.x + this.sz / 3, this.y - this.sz / 3);
+            return new Point2D((float) (this.x + this.sz / 3), (float) (this.y - this.sz / 3));
         }
 
         Point2D getCentre() {
-            return new Point2D(this.x + this.sz / 2, this.y - this.sz / 2);
+            return new Point2D( (float) (this.x + this.sz / 2), (float) (this.y - this.sz / 2));
         }
 
         void setSnadder (Tile toTile, boolean snake) {

@@ -18,7 +18,7 @@
     <string name="button15">Terrain Generator</string>
     <string name="button16">Fractal Trees</string>
     <string name="button17">Circle Morphing</string>
-    <string name="button18">TBA</string>
+    <string name="button18">3D Text Crawl</string>
     <string name="button19">TBA</string>
     <string name="button20">More cool things\u2026</string>
 
@@ -38,7 +38,7 @@
     <string name="title_activity_terraingen">Terrain Generator</string>
     <string name="title_activity_fractals">Fractal Trees</string>
     <string name="title_activity_circmorph">Circle Morphing</string>
-    <string name="title_activity_tba18">TBA18</string>
+    <string name="title_activity_textcrawl">3D Text Crawl - Star Wars</string>
     <string name="title_activity_tba19">TBA19</string>
 
     <string name="action_button_done">DONE</string>

@@ -7,7 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -162,7 +162,7 @@ public class Phyllotaxis extends AppCompatActivity {
             paintText.setColor(Color.WHITE);
         }
 
-        private Runnable updateFrame = new Runnable() {
+        private final Runnable updateFrame = new Runnable() {
             @Override
             public void run() {
                 handler.removeCallbacks(updateFrame);
@@ -232,7 +232,7 @@ public class Phyllotaxis extends AppCompatActivity {
             canvas.drawText(msg, 20, 75, paintText);
 
             // move the (0,0) point to the center of the canvas..
-            canvas.translate(maxX / 2, maxY / 2);
+            canvas.translate((float) maxX / 2, (float) maxY / 2);
 
             // display the leaves
             if (leaves != null) {
@@ -294,7 +294,7 @@ public class Phyllotaxis extends AppCompatActivity {
 
     }
 
-    class Leaf {
+    static class Leaf {
         int n;
         float x, y;   // screen coords of center
         float distance;
@@ -321,7 +321,7 @@ public class Phyllotaxis extends AppCompatActivity {
         }
 
         boolean offScreen(int limitX, int limitY) {
-            return (this.x < -limitX / 2 || this.x > limitX / 2 || this.y < -limitY / 2 || this.y > limitY / 2);
+            return (this.x < -limitX / 2.0 || this.x > limitX / 2.0 || this.y < -limitY / 2.0 || this.y > limitY / 2.0);
         }
     }
 

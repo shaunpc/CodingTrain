@@ -6,7 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +34,7 @@ public class PerlinNoise extends AppCompatActivity {
     int cellWidth;      // grabs from the sbCellSize...
     boolean started = false;
     int cols, rows;
-    Cell cells[][];
+    Cell[][] cells;
     PerlinNoiseGenerator png;
     float noiseIncrement = 0.1f;
     float timeIncrement = 0.01f;
@@ -187,7 +187,7 @@ public class PerlinNoise extends AppCompatActivity {
             paintText.setColor(Color.BLACK);
         }
 
-        private Runnable updateFrame = new Runnable() {
+        private final Runnable updateFrame = new Runnable() {
             @Override
             public void run() {
                 handler.removeCallbacks(updateFrame);
@@ -220,8 +220,8 @@ public class PerlinNoise extends AppCompatActivity {
                 maxX = myCanvasView.getWidth();
                 maxY = myCanvasView.getHeight();
                 cellWidth = sbCellSize.getProgress() + 10;
-                cols = (int) Math.ceil(maxX / cellWidth ) ;
-                rows = (int) Math.ceil(maxY / cellWidth ) ;
+                cols = (int) Math.ceil(maxX / cellWidth);
+                rows = (int) Math.ceil(maxY / cellWidth);
                 cells = new Cell[cols][rows];
                 Log.i(TAG,"Max=["+maxX+","+maxY+"] cellWidth="+cellWidth+" Cols:"+cols+" Rows:"+rows);
 
@@ -251,7 +251,7 @@ rows = 4;*/
                 particles = new ArrayList<>();
                 int maxParticles = sbParticleCount.getProgress();
                 for (int i = 0 ; i < maxParticles; i++) {
-                    Particle p = new Particle (r.nextInt(cols*cellWidth), r.nextInt(rows*cellWidth));
+                    Particle p = new Particle(r.nextInt(cols * cellWidth), r.nextInt(rows * cellWidth));
                     //p.applyForce(new Point2D((r.nextInt(50)-25)/cellWidth, (r.nextInt(50)-25)/cellWidth));
                     particles.add(p);
                 }
@@ -377,7 +377,7 @@ rows = 4;*/
     }
 
 
-    class Cell {
+    static class Cell {
         int x, y;   // screen coords of top-left corner
         int width;
         float angle;
@@ -403,11 +403,11 @@ rows = 4;*/
 
         void showFlow(Canvas canvas) {
             canvas.save();
-            canvas.translate(this.x + this.width/2,this.y+ this.width/2);
+            canvas.translate((float) (this.x + this.width/2.0),(float) (this.y + this.width/2.0));
             canvas.rotate(this.angle);
-            canvas.drawLine(-this.width/3,0,this.width/3, 0, this.paint);
-            canvas.drawLine(this.width/3,0,(this.width/3)-5, -5, this.paint);
-            canvas.drawLine(this.width/3,0,(this.width/3)-5, +5, this.paint);
+            canvas.drawLine((float) -this.width/3,0,(float) this.width/3, 0, this.paint);
+            canvas.drawLine((float) this.width/3,0,(float) (this.width/3)-5, -5, this.paint);
+            canvas.drawLine((float) this.width/3,0,(float) (this.width/3)-5, +5, this.paint);
             canvas.restore();
 /*            canvas.drawText(String.valueOf(this.force.getX()),this.x,this.y+25,this.paint);
             canvas.drawText(String.valueOf(this.force.getY()),this.x,this.y+50,this.paint);
@@ -434,7 +434,7 @@ rows = 4;*/
         }
     }
 
-    class Particle {
+    static class Particle {
         Point2D pos;
         Point2D vel;
         Point2D acc;

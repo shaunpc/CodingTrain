@@ -1,12 +1,17 @@
 package com.spc.codingtrain;
 
 import android.content.Context;
+import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,20 +20,21 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
-import static java.lang.Math.sqrt;
+// API 26 import static android.text.Layout.JUSTIFICATION_MODE_INTER_WORD;
 
-import com.spc.library.MyColor;
+public class TextCrawl extends AppCompatActivity {
 
-public class MitosisActivity extends AppCompatActivity {
-
-    private static final String TAG = "MITOSIS";
+    private static final String TAG = "TEXTCRAWL";
     private String action = "START";
     Button btnAction;
     MyCanvasView myCanvasView;
+    int[] sourceFiles;
+    int current;
+    String crawlText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +77,12 @@ public class MitosisActivity extends AppCompatActivity {
 
         setContentView(rLayout);
         Log.i(TAG, "OnCreate completed");
+
+        sourceFiles = new int[] {R.raw.episode_i, R.raw.episode_ii, R.raw.episode_iii,
+                                R.raw.episode_iv, R.raw.episode_v, R.raw.episode_vi,
+                                R.raw.episode_vii, R.raw.episode_viii};
+        current = 0; // Episode I
+
     }
 
     void actionButton() {
@@ -85,25 +97,33 @@ public class MitosisActivity extends AppCompatActivity {
     }
 
     class MyCanvasView extends View {
-        private static final String TAG = "CANVASVIEW";
         Paint paintCanvas, paintText;
+        TextPaint mTextPaint;
         boolean started = false;
         private Handler handler;
-        private static final int FRAME_RATE = 20; // 50 frames per second
-        List<Cell> cells = new ArrayList<>();
-        String msg;
+        private static final int FRAME_RATE = 25; // 50 frames per second
+        Camera camera = new Camera();
+        int maxX, maxY;
+        int posY;   // where start the text draw
+        StaticLayout mTextLayout;
+
 
         MyCanvasView(Context context) {
             super(context);
             paintCanvas = new Paint();
             paintCanvas.setStyle(Paint.Style.STROKE);
             paintCanvas.setColor(Color.BLACK);
+            mTextPaint = new TextPaint();
+            mTextPaint.setTextSize(16 * getResources().getDisplayMetrics().density);
+            mTextPaint.setARGB(255, 229, 177,58);
+            mTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
             paintText = new Paint();
             paintText.setTextSize(25);
             paintText.setColor(Color.WHITE);
+
         }
 
-        private Runnable updateFrame = new Runnable() {
+        private final Runnable updateFrame = new Runnable() {
             @Override
             public void run() {
                 handler.removeCallbacks(updateFrame);
@@ -130,40 +150,73 @@ public class MitosisActivity extends AppCompatActivity {
         //TEMPLATE - KEY FUNCTION - apply any changes to each construct
         private void updateMyCanvas() {
 
-            Random r = new Random();
-            int maxX = getWidth();
-            int maxY = getHeight();
+            maxX = getWidth();
+            maxY = getHeight();
 
             if (!started) {
-                // create two cells to get things started
-                cells.add(new Cell (r.nextInt(maxX), r.nextInt(maxY), r.nextInt(40)+40));
-                cells.add(new Cell (r.nextInt(maxX), r.nextInt(maxY), r.nextInt(40)+40));
+                // Get the first text file....
+                crawlText = readFileAsString(sourceFiles[current]);
+                // Add it to the static text layout (enables wrapping)
+                // API 26 StaticLayout.Builder builder = StaticLayout.Builder.obtain(crawlText, 0, crawlText.length(), mTextPaint, maxX)
+                // API 26         .setJustificationMode(JUSTIFICATION_MODE_INTER_WORD);
+                // API 26 mTextLayout = builder.build();
+
+                // API 21
+                mTextLayout = new StaticLayout(crawlText, mTextPaint,  maxX,
+                        Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+                posY = maxY; // start at bottom of screen
+                // xRot = 0;
                 started = true;
             } else {
-                // perform updates on all cells
-                for (Cell c : cells) {
-                    c.update();
+                // perform updates :  scroll the text a bit more...
+                //posY--;
+                if (posY + mTextLayout.getHeight() < 0 ) {
+                    startNextFile();
                 }
             }
+        }
+
+        String readFileAsString (int resID) {
+            InputStream inputStream = getResources().openRawResource(resID);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+            int i;
+            try {
+                i = inputStream.read();
+                while (i != -1)
+                {
+                    byteArrayOutputStream.write(i);
+                    i = inputStream.read();
+                }
+                inputStream.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return (byteArrayOutputStream.toString());
         }
 
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
 
-            // Draw the two lines and the pendulums themselves...
+            // Perform drawing
             if (started) {
                 // now clear background
                 canvas.drawPaint(paintCanvas);
 
-                // show all cells
-                for (Cell c : cells) {
-                    c.show(canvas);
-                }
+                camera.save();
+                canvas.save();
+                camera.translate((float) (maxX/2.0), maxY,0);
+                // camera.dotWithNormal(0,0,0);
+                camera.setLocation(0,0,200);
+                camera.rotate(45,0,0);
+                camera.applyToCanvas(canvas);   // add the Camera '3D transformation matrix
+                canvas.translate((float) (-maxX/2.0), posY);
+                mTextLayout.draw(canvas);
+                canvas.restore();
+                camera.restore();
 
-                // display the info
-                msg = "Cells:" + cells.size();
-                canvas.drawText(msg, 20, 25, paintText);
             }
         }
 
@@ -208,71 +261,19 @@ public class MitosisActivity extends AppCompatActivity {
                 if (handler == null) {  // touched screen before "START" button
                     actionButton();     // then mimic the action button being pressed...
                 }
-                // review all cells to see if touch event occurred inside a cell
-                for (Cell c : cells) {
-                    if (c.inside(event.getX(), event.getY())) {
-                        cells.add(c.mitosis());
-                        break;
-                    }
-                }
+                startNextFile();
             } // DOWN
 
             return true;
         }
-    }
 
-    class Cell {
-        float x;
-        float y;
-        float r;
-        float pulsate;
-        MyColor colour;
-        Paint paintCell = new Paint();
-
-        Cell (float x, float y, float r) {
-            this.x = x;
-            this.y = y;
-            this.r = r;
-            this.paintCell.setStrokeWidth(5);
-            this.colour = new MyColor();  // get a random colour
-            this.paintCell.setStyle(Paint.Style.FILL_AND_STROKE);
-            this.paintCell.setARGB(155, colour.r, colour.g, colour.b);
-        }
-
-        void show(Canvas canvas) {
-            canvas.drawCircle(this.x, this.y, this.r+this.pulsate, this.paintCell);
-        }
-
-        void update () {
-            Random r = new Random();
-            this.x = this.x + (r.nextInt(11)-5);
-            this.y = this.y + (r.nextInt(11)-5);
-            this.pulsate = this.r + (r.nextInt(5)-2);
-            if (this.r < 100) {
-                this.r = this.r *1.001f;
+        void startNextFile() {
+            // get the next text, and start scrolling
+            current++;
+            if (current > sourceFiles.length-1) {
+                current = 0;
             }
+            started = false;    // will force load of next text file
         }
-
-        Cell mitosis () {
-            Log.i (TAG, "Performing mitosis at " + this.x + ","+ this.y);
-
-            float newX = this.x - this.r * 0.5f; // set new cell slightly to left of current
-            this.x = this.x + this.r * 0.5f;   // move this one slightly right
-            this.r = (float) sqrt(2)/2 * this.r;   //set new radius that preserves overall area
-            Cell newCell = new Cell(newX,this.y,this.r);
-            newCell.setColour(this.colour);   //preserve the colour...
-            return newCell;
-        }
-
-        void setColour (MyColor colour) {
-            this.paintCell.setARGB(155, colour.r, colour.g, colour.b);
-        }
-
-        boolean inside (float x, float y) {  // return true if coords passed are inside the cell
-            // otherwise find the distance between the (x,y)'s and check against the two radius
-            float distance =  (float) sqrt(Math.pow(this.x - x, 2)+Math.pow(this.y - y, 2));
-            return (distance < this.r);
-        }
-
     }
 }

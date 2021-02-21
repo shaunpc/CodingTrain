@@ -1,6 +1,6 @@
 package com.spc.codingtrain;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -13,7 +13,6 @@ import android.widget.TextView;
  */
 public class OpenGLActivity extends AppCompatActivity {
 
-    private static final String TAG = "OPENGL-BASICS";
     TextView tv_KeyInfo, tv_LogInfo;
     private MyGLSurfaceView glSurfaceView;
 

@@ -6,7 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -84,7 +84,7 @@ public class PendulumActivity extends AppCompatActivity {
         private Handler handler;
         private static final int FRAME_RATE = 20 ; // 50 frames per second
 
-        float path[] = new float[1000];    // Holds the pendulum#2 path history
+        float[] path = new float[1000];    // Holds the pendulum#2 path history
         float anchorX, anchorY;       //Anchor point
         float tmpX, tmpY;       //Temporary point as user moves the pendulum
         float m1, x1, y1;   // Pendulum #1 mass, coords
@@ -120,7 +120,7 @@ public class PendulumActivity extends AppCompatActivity {
 
         }
 
-        private Runnable updateFrame = new Runnable() {
+        private final Runnable updateFrame = new Runnable() {
             @Override
             public void run() {
                 handler.removeCallbacks(updateFrame);
@@ -149,14 +149,14 @@ public class PendulumActivity extends AppCompatActivity {
 
             if (!started) {
                 int smaller = Math.min(myCanvasView.getWidth(),myCanvasView.getHeight());
-                anchorX = myCanvasView.getWidth()/2; // in middle
-                anchorY = myCanvasView.getHeight()/18; // near top
+                anchorX = (float) (myCanvasView.getWidth()/2.0); // in middle
+                anchorY = (float) (myCanvasView.getHeight()/18.0); // near top
                 m1 = 30;    // Pendulum #1 mass
-                r1 = smaller/3;    // Pendulum #1 length of string
+                r1 = smaller/3.0;    // Pendulum #1 length of string
                 a1 = Math.PI/4;     // Pendulum #1 angle
                 a1_vel = 0;
                 m2 = 30;    // Pendulum #2 mass
-                r2 = smaller/4;    // Pendulum #2 length of string
+                r2 = smaller/4.0;    // Pendulum #2 length of string
                 a2 = Math.PI/8;     // Pendulum #2 angle
                 a2_vel = 0;
                 started=true;
@@ -323,8 +323,7 @@ public class PendulumActivity extends AppCompatActivity {
                 if (movingPendulum > 0) {
                     path = new float[1000];
                     movingPendulum = 0;
-                };
-
+                }
             } // UP
 
             return true;

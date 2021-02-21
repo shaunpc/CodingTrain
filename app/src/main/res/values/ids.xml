@@ -4,6 +4,9 @@
     <item type="id" name="image_button_id"/>
     <item type="id" name="entertext_button_id"/>
     <item type="id" name="seekbar_id"/>
+    <item type="id" name="seekbar_idx"/>
+    <item type="id" name="seekbar_idy"/>
+    <item type="id" name="seekbar_idz"/>
     <item type="id" name="seekbar_constant_id"/>
     <item type="id" name="seekbar_magicangle_id"/>
     <item type="id" name="canvas_view_id"/>

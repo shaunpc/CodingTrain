@@ -3,7 +3,7 @@ package com.spc.codingtrain;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -78,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.button14: // Maze Generation
                 intent = new Intent(MainActivity.this, MazeGenActivity.class);
+                break;
+            case R.id.button18: // 3D Text Crawl
+                intent = new Intent(MainActivity.this, TextCrawl.class);
                 break;
             default:
                 Log.i(TAG, "Unavailable feature: " + msg);
