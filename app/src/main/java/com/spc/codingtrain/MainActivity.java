@@ -39,62 +39,47 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = null;
         Button button = (Button) v;
         String msg = button.getText().toString();
-        switch (v.getId()) {
-            case R.id.button1: // OpenGL
-                intent = new Intent(MainActivity.this, OpenGLActivity.class);
-                break;
-            case R.id.button2: // Canvas Basics
-                intent = new Intent(MainActivity.this, CanvasActivity.class);
-                break;
-            case R.id.button3: // Fireworks
-                intent = new Intent(MainActivity.this, FireworksActivity.class);
-                break;
-            case R.id.button4: // Metaballs
-                intent = new Intent(MainActivity.this, MetaballsActivity.class);
-                break;
-            case R.id.button5: // Smart Rockets
-                intent = new Intent(MainActivity.this, SmartRocketsActivity.class);
-                break;
-            case R.id.button6: // Double Pendulum
-                intent = new Intent(MainActivity.this, PendulumActivity.class);
-                break;
-            case R.id.button7: // Snakes & Ladders
-                intent = new Intent(MainActivity.this, SnakesAndLadders.class);
-                break;
-            case R.id.button8: // Circle Packing
-                intent = new Intent(MainActivity.this, CirclePackingActivity.class);
-                break;
-            case R.id.button9: // Mitosis
-                intent = new Intent(MainActivity.this, MitosisActivity.class);
-                break;
-            case R.id.button11: // Langton's Ant
-                intent = new Intent(MainActivity.this, LangtonsAnt.class);
-                break;
-            case R.id.button12: // Phyllotaxis
-                intent = new Intent(MainActivity.this, Phyllotaxis.class);
-                break;
-            case R.id.button13: // Perlin Noise
-                intent = new Intent(MainActivity.this, PerlinNoise.class);
-                break;
-            case R.id.button14: // Maze Generation
-                intent = new Intent(MainActivity.this, MazeGenActivity.class);
-                break;
-            case R.id.button18: // 3D Text Crawl
-                intent = new Intent(MainActivity.this, TextCrawl.class);
-                break;
-            default:
-                Log.i(TAG, "Unavailable feature: " + msg);
-                Toast toast = Toast.makeText(getApplicationContext(),msg,LENGTH_SHORT);
-                toast.setGravity(Gravity.TOP, 0,0);
-                if (button.getCurrentTextColor() == Color.RED) {
-                    button.setVisibility(View.GONE);
-                    toast.setText("Donkey! Still not available! Removing from menu...");
-                } else {
-                    button.setTextColor(Color.RED);
-                    toast.setText("Sorry, unavailable feature: " + msg);
-                }
-                toast.show();
-                break;
+        int id = v.getId();
+        if (id == R.id.button1) { // OpenGL
+            intent = new Intent(MainActivity.this, OpenGLActivity.class);
+        } else if (id == R.id.button2) { // Canvas Basics
+            intent = new Intent(MainActivity.this, CanvasActivity.class);
+        } else if (id == R.id.button3) { // Fireworks
+            intent = new Intent(MainActivity.this, FireworksActivity.class);
+        } else if (id == R.id.button4) { // Metaballs
+            intent = new Intent(MainActivity.this, MetaballsActivity.class);
+        } else if (id == R.id.button5) { // Smart Rockets
+            intent = new Intent(MainActivity.this, SmartRocketsActivity.class);
+        } else if (id == R.id.button6) { // Double Pendulum
+            intent = new Intent(MainActivity.this, PendulumActivity.class);
+        } else if (id == R.id.button7) { // Snakes & Ladders
+            intent = new Intent(MainActivity.this, SnakesAndLadders.class);
+        } else if (id == R.id.button8) { // Circle Packing
+            intent = new Intent(MainActivity.this, CirclePackingActivity.class);
+        } else if (id == R.id.button9) { // Mitosis
+            intent = new Intent(MainActivity.this, MitosisActivity.class);
+        } else if (id == R.id.button11) { // Langton's Ant
+            intent = new Intent(MainActivity.this, LangtonsAnt.class);
+        } else if (id == R.id.button12) { // Phyllotaxis
+            intent = new Intent(MainActivity.this, Phyllotaxis.class);
+        } else if (id == R.id.button13) { // Perlin Noise
+            intent = new Intent(MainActivity.this, PerlinNoise.class);
+        } else if (id == R.id.button14) { // Maze Generation
+            intent = new Intent(MainActivity.this, MazeGenActivity.class);
+        } else if (id == R.id.button18) { // 3D Text Crawl
+            intent = new Intent(MainActivity.this, TextCrawl.class);
+        } else {
+            Log.i(TAG, "Unavailable feature: " + msg);
+            Toast toast = Toast.makeText(getApplicationContext(), msg, LENGTH_SHORT);
+            toast.setGravity(Gravity.TOP, 0, 0);
+            if (button.getCurrentTextColor() == Color.RED) {
+                button.setVisibility(View.GONE);
+                toast.setText("Donkey! Still not available! Removing from menu...");
+            } else {
+                button.setTextColor(Color.RED);
+                toast.setText("Sorry, unavailable feature: " + msg);
+            }
+            toast.show();
         }
 
         if (intent != null) {
