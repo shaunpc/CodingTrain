@@ -10,6 +10,10 @@ import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,6 +52,19 @@ public class SnakesAndLadders extends AppCompatActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         setContentView(rLayout, rlParams);
         rLayout.setBackgroundColor(Color.DKGRAY);
+
+        ViewCompat.setOnApplyWindowInsetsListener(rLayout, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            v.setPadding(
+                    insets.left,
+                    insets.top,
+                    insets.right,
+                    insets.bottom
+            );
+
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         // Next, add the Button at the bottom of the screen
         btnAction = new Button(this);

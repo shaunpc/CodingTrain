@@ -1,7 +1,6 @@
 package com.spc.codingtrain;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -15,9 +14,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.MediaStore;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -48,9 +52,20 @@ public class CirclePackingActivity extends AppCompatActivity {
     private static final int FILL_MODE_FULL = 0;        // full screen
     private static final int FILL_MODE_TEXT = 1;        // use entered text outline
     private static final int FILL_MODE_IMAGE = 2;       // use image colours
-    public static final int PICK_IMAGE = 1; // ensure we listen for the right action intent result
     int fill_mode = FILL_MODE_FULL;
 
+    private final ActivityResultLauncher<String> pickImageLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) {
+                    template = new Outline(uri);
+                    Log.i(TAG, "imageUri is " + uri);
+                    fill_mode = FILL_MODE_IMAGE; // instruct onDraw to only create circles based on colours
+                    myCanvasView.setBackgroundColor(Color.BLUE);  // clears the screen
+                    if (!myCanvasView.circles.isEmpty()) {      // reset the circles list
+                        myCanvasView.circles = new ArrayList<>();
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +79,18 @@ public class CirclePackingActivity extends AppCompatActivity {
         setContentView(rLayout, rlParams);
         rLayout.setBackgroundColor(Color.DKGRAY);
 
+        ViewCompat.setOnApplyWindowInsetsListener(rLayout, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            v.setPadding(
+                    insets.left,
+                    insets.top,
+                    insets.right,
+                    insets.bottom
+            );
+
+            return WindowInsetsCompat.CONSUMED;
+        });
         // Next, add the Button at the bottom of the screen
         btnAction = new Button(this);
         btnAction.setId(R.id.action_button_id);
@@ -135,31 +162,8 @@ public class CirclePackingActivity extends AppCompatActivity {
         }
     }
 
-    void imageButton () {
-        Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        getIntent.setType("image/*");
-        Intent pickIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        pickIntent.setType("image/*");
-        Intent chooserIntent = Intent.createChooser(getIntent, "Select image");
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {pickIntent});
-        startActivityForResult(chooserIntent, PICK_IMAGE);
-    }
-
-    @Override
-    public void onActivityResult (int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE) {
-            Log.i(TAG, "Activity ResultCode=" + resultCode);
-            if (data != null && data.getData() != null) {
-                template = new Outline(data.getData());
-                Log.i(TAG, "imageUri is " + data.getData());
-                fill_mode = FILL_MODE_IMAGE; // instruct onDraw to only create circles based on colours
-                myCanvasView.setBackgroundColor(Color.BLUE);  // clears the screen
-                if (!myCanvasView.circles.isEmpty()) {      // reset the circles list
-                    myCanvasView.circles = new ArrayList<>();
-                }
-            }
-        }
+    void imageButton() {
+        pickImageLauncher.launch("image/*");
     }
 
     void processEnteredText (String enteredText) {
@@ -209,7 +213,7 @@ public class CirclePackingActivity extends AppCompatActivity {
             this.textSize = this.paintET.getTextSize();
             this.x = (float) (maxX - this.bounds.width())/2;
             this.y = (float) (maxY - ((maxY - this.bounds.height())/2)) - this.bounds.bottom ;
-            Log.i(TAG,"Bounds:"+this.bounds.toString()+"/W:"+this.bounds.width()+"/H:"+this.bounds.height());
+            Log.i(TAG,"Bounds:"+this.bounds+"/W:"+this.bounds.width()+"/H:"+this.bounds.height());
             Log.i(TAG,"Draw text at (X="+this.x+",Y="+this.y);
 
             // now create a blank bitmap, and a canvas to draw on it, then "show" it...

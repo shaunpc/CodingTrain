@@ -9,6 +9,10 @@ import android.os.Handler;
 import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -35,6 +39,19 @@ public class PendulumActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         setContentView(rLayout, rlParams);
         rLayout.setBackgroundColor(Color.DKGRAY);
+
+        ViewCompat.setOnApplyWindowInsetsListener(rLayout, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            v.setPadding(
+                    insets.left,
+                    insets.top,
+                    insets.right,
+                    insets.bottom
+            );
+
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         btnAction = new Button(this);
         btnAction.setId(R.id.action_button_id);

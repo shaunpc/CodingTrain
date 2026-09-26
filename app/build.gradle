@@ -3,22 +3,22 @@ plugins {
 }
 
 android {
-    namespace 'com.spc.codingtrain'
+    namespace = 'com.spc.codingtrain'
     compileSdkVersion 37
 
     defaultConfig {
-        applicationId 'com.spc.codingtrain'
-        minSdkVersion 23
-        targetSdkVersion 37
-        versionCode 1
-        versionName '1.0'
+        applicationId = 'com.spc.codingtrain'
+        minSdk = 23
+        targetSdk = 37
+        versionCode = 1
+        versionName = '1.0'
 
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
