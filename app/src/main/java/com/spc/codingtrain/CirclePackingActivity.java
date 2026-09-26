@@ -3,15 +3,20 @@ package com.spc.codingtrain;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageDecoder;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
@@ -24,6 +29,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -62,12 +68,7 @@ public class CirclePackingActivity extends AppCompatActivity {
         btnAction = new Button(this);
         btnAction.setId(R.id.action_button_id);
         btnAction.setText(R.string.action_button_start);
-        btnAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                actionButton();
-            }
-        });
+        btnAction.setOnClickListener(v -> actionButton());
         RelativeLayout.LayoutParams btnParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         btnParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
@@ -82,14 +83,12 @@ public class CirclePackingActivity extends AppCompatActivity {
         enterText.setHintTextColor(Color.YELLOW);
         enterText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         enterText.setLines(1);
-        enterText.setOnKeyListener(new View.OnKeyListener() {
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                    processEnteredText(enterText.getText().toString());
-                    return true;
-                }
-                return false;
+        enterText.setOnKeyListener((v, keyCode, event) -> {
+            if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                processEnteredText(enterText.getText().toString());
+                return true;
             }
+            return false;
         });
         btnParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -102,12 +101,7 @@ public class CirclePackingActivity extends AppCompatActivity {
         btnImage = new Button(this);
         btnImage.setId(R.id.image_button_id);
         btnImage.setText(R.string.image_button);
-        btnImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                imageButton();
-            }
-        });
+        btnImage.setOnClickListener(v -> imageButton());
         btnParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         btnParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
@@ -131,7 +125,7 @@ public class CirclePackingActivity extends AppCompatActivity {
     }
 
     void actionButton() {
-        if (action.equals("START")) {
+        if ("START".equals(action)) {
             btnAction.setText(R.string.action_button_done);
             action = "DONE";
             myCanvasView.startFrameUpdates();
@@ -153,29 +147,27 @@ public class CirclePackingActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE) {
-            // TODO got one..
-            Log.i(TAG, "Activity ResultCode="+resultCode);
-            if (data != null && data.getData() != null ) {
+            Log.i(TAG, "Activity ResultCode=" + resultCode);
+            if (data != null && data.getData() != null) {
                 template = new Outline(data.getData());
                 Log.i(TAG, "imageUri is " + data.getData());
                 fill_mode = FILL_MODE_IMAGE; // instruct onDraw to only create circles based on colours
                 myCanvasView.setBackgroundColor(Color.BLUE);  // clears the screen
-                if (myCanvasView.circles.size() > 0) {      // reset the circles list
+                if (!myCanvasView.circles.isEmpty()) {      // reset the circles list
                     myCanvasView.circles = new ArrayList<>();
                 }
-
             }
         }
     }
 
     void processEnteredText (String enteredText) {
-        // TODO do something to capture the text...
         template = new Outline(enteredText);
         Log.i(TAG,"Ideal font size for "+enteredText+" is "+ template.paintET.getTextSize());
         fill_mode = FILL_MODE_TEXT; // instruct onDraw to only create circles witing the template
         myCanvasView.setBackgroundColor(Color.BLUE);  // clears the screen
-        if (myCanvasView.circles.size() > 0) {      // reset the circles list
+        if (!myCanvasView.circles.isEmpty()) {      // reset the circles list
             myCanvasView.circles = new ArrayList<>();
         }
     }
@@ -242,29 +234,34 @@ public class CirclePackingActivity extends AppCompatActivity {
             this.imageUri = imageUri.getPath();
             Log.i(TAG,"URI="+imageUri+ " / PATH="+this.imageUri);
             try {
-                this.bitmap = MediaStore.Images.Media.getBitmap(getBaseContext().getContentResolver(), imageUri);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    ImageDecoder.Source source = ImageDecoder.createSource(getBaseContext().getContentResolver(), imageUri);
+                    this.bitmap = ImageDecoder.decodeBitmap(source).copy(Bitmap.Config.ARGB_8888, true);
+                } else {
+                    InputStream is = getBaseContext().getContentResolver().openInputStream(imageUri);
+                    this.bitmap = BitmapFactory.decodeStream(is);
+                    if (is != null) is.close();
+                }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error decoding image URI", e);
             }
-            Log.i(TAG,"Decoded bitmap size is "+this.bitmap.getWidth()+" by "+this.bitmap.getHeight());
-            // now need to scale that to be same a myCanvasView size... then alter rest to drive colour from pixel...
-            double maxX = myCanvasView.getWidth();
-            double maxY = myCanvasView.getHeight();
-            this.bitmap = resize(this.bitmap, (int) maxX, (int) maxY);
-            Log.i(TAG,"Re-sized bitmap size is "+this.bitmap.getWidth()+" by "+this.bitmap.getHeight());
+            if (this.bitmap != null) {
+                Log.i(TAG, "Decoded bitmap size is " + this.bitmap.getWidth() + " by " + this.bitmap.getHeight());
+                double maxX = myCanvasView.getWidth();
+                double maxY = myCanvasView.getHeight();
+                this.bitmap = resize(this.bitmap, (int) maxX, (int) maxY);
+                Log.i(TAG, "Re-sized bitmap size is " + this.bitmap.getWidth() + " by " + this.bitmap.getHeight());
 
-            //TODO now need to store bounds/translate over to main canvas coord and pull in colour with fill..
-            // Rect(int left, int top, int right, int bottom)
-
-            this.bounds = new Rect((int) ((maxX-this.bitmap.getWidth())/2),
-                    (int) ((maxY-this.bitmap.getHeight())/2),
-                    (int) (maxX - ((maxX-this.bitmap.getWidth())/2)),
-                    (int) (maxY - ((maxY-this.bitmap.getHeight())/2)));
+                this.bounds = new Rect((int) ((maxX - this.bitmap.getWidth()) / 2),
+                        (int) ((maxY - this.bitmap.getHeight()) / 2),
+                        (int) (maxX - ((maxX - this.bitmap.getWidth()) / 2)),
+                        (int) (maxY - ((maxY - this.bitmap.getHeight()) / 2)));
+            }
         }
 
 
         void show (Canvas canvas) {
-            if (fill_mode == FILL_MODE_TEXT && this.textOutline.length() > 0) {    // draw text if we have some
+            if (fill_mode == FILL_MODE_TEXT && !this.textOutline.isEmpty()) {    // draw text if we have some
                 canvas.drawText(this.textOutline, this.x,this.y, this.paintET);
                 canvas.drawRect(this.bounds, this.paintET);
             }
@@ -298,7 +295,6 @@ public class CirclePackingActivity extends AppCompatActivity {
     }
 
     class MyCanvasView extends View {
-        private static final String TAG = "CANVASVIEW";
         Paint paintCanvas, paintText;
         boolean started = false;
         private Handler handler;
@@ -316,33 +312,32 @@ public class CirclePackingActivity extends AppCompatActivity {
             paintText.setColor(Color.WHITE);
         }
 
-        private Runnable updateFrame = new Runnable() {
+        private final Runnable updateFrame = new Runnable() {
             @Override
             public void run() {
-                handler.removeCallbacks(updateFrame);
-                // KEY FUNCTION CALL - but only when window is ready!
-                if (myCanvasView != null) {
-                    if (myCanvasView.getWidth() != 0) {
+                if (handler != null) {
+                    handler.removeCallbacks(updateFrame);
+                    if (myCanvasView != null && myCanvasView.getWidth() != 0) {
                         updateMyCanvas();
                         myCanvasView.invalidate();
                     }
+                    handler.postDelayed(updateFrame, FRAME_RATE);
                 }
-                handler.postDelayed(updateFrame, FRAME_RATE);
             }
         };
 
         void startFrameUpdates() {
-            handler = new Handler();
+            handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(updateFrame, 500);
         }
 
         void stopFrameUpdates() {
-            handler.removeCallbacks(updateFrame);
+            if (handler != null) {
+                handler.removeCallbacks(updateFrame);
+            }
         }
 
-        //TEMPLATE - KEY FUNCTION - apply any changes to each construct
         private void updateMyCanvas() {
-
             Random r = new Random();
             int maxX = getWidth();
             int maxY = getHeight();
@@ -350,17 +345,12 @@ public class CirclePackingActivity extends AppCompatActivity {
             if (!started) {
                 started = true;
             } else {
-
-                // add a new random circle every frame update
                 switch (fill_mode) {
-
                     case FILL_MODE_FULL:
-                        // anywhere on the whole canvas
                         createNewCircle(r.nextInt(maxX), r.nextInt(maxY));
                         break;
 
                     case FILL_MODE_TEXT:
-                        // add several points within the outline template coords array
                         int index;
                         for (int i=0; i < template.textOutline.length(); i++) {
                             index = r.nextInt(template.points.size());
@@ -370,35 +360,25 @@ public class CirclePackingActivity extends AppCompatActivity {
                         break;
 
                     case FILL_MODE_IMAGE:
-                        // anywhere within the bounds of the image
                         int iX, iY, iC;
                         for (int i=0; i < template.bounds.width()/50; i++) {
                             iX = r.nextInt(template.bounds.width());
                             iY = r.nextInt(template.bounds.height());
-                            // Log.i(TAG, "Trying to get pixel for ("+iX+","+iY+") >> Max is ("+template.bitmap.getWidth()+","+template.bitmap.getHeight()+")");
                             iC = template.bitmap.getPixel(iX, iY);
-                            // Log.i(TAG, "Found col="+iC + " Adding "+ template.bounds.left+","+ template.bounds.top);
                             createNewCircle(iX + template.bounds.left, iY + template.bounds.top, iC);
                         }
                         break;
-
-
                 }
 
-                // perform updates on all circles
                 for (Circle c : circles) {
-                    // Log.i(TAG, "Circle "+c.x+","+c.y+" "+c.r);
                     if (c.growing) {
-                        // Log.i(TAG,"   Growing...");
                         c.grow();
-                        if (c.edges()) {  // Check if reached edges
-                            // Log.i(TAG,"   Reached edges...");
+                        if (c.edges()) {
                             c.growing = false;
                         }
-                        // Log.i(TAG,"   Checking overlap...");
                         if (!checkNoOverlap(c)) {
-                                c.growing = false;
-                            }
+                            c.growing = false;
+                        }
                     }
                 }
             }
@@ -431,29 +411,16 @@ public class CirclePackingActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onDraw(Canvas canvas) {
+        protected void onDraw(@NonNull Canvas canvas) {
             super.onDraw(canvas);
 
-            // Draw the two lines and the pendulums themselves...
             if (started) {
-                // now clear background
                 canvas.drawPaint(paintCanvas);
 
-                // show image first
-/*                if (fill_mode == FILL_MODE_IMAGE) {
-                    template.show(canvas);
-                }*/
-
-                // show any circles
-                // int cCount = 2;
                 for (Circle c : circles) {
                     c.show(canvas);
-                    // msg = "  Circle:("+c.x+","+c.y+") radius:" + c.r + " Growing:"+c.growing;
-                    // canvas.drawText(msg, 20, cCount * 25, paintText);
-                    //cCount++;
                 }
 
-                // display the info
                 msg = "Circles:" + circles.size();
                 canvas.drawText(msg, 20, 25, paintText);
 
@@ -473,7 +440,6 @@ public class CirclePackingActivity extends AppCompatActivity {
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            //super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             int desiredWidth = 500;
             int desiredHeight = 500;
 
@@ -484,7 +450,6 @@ public class CirclePackingActivity extends AppCompatActivity {
 
             int width, height;
 
-            // Measure Width
             if (widthMode == MeasureSpec.EXACTLY) {
                 width = widthSize;
             } else if (widthMode == MeasureSpec.AT_MOST) {
@@ -493,7 +458,6 @@ public class CirclePackingActivity extends AppCompatActivity {
                 width = desiredWidth;
             }
 
-            // Measure Height
             if (heightMode == MeasureSpec.EXACTLY) {
                 height = heightSize;
             } else if (heightMode == MeasureSpec.AT_MOST) {
@@ -502,22 +466,26 @@ public class CirclePackingActivity extends AppCompatActivity {
                 height = desiredHeight;
             }
 
-            // MUST CALL THIS
             setMeasuredDimension(width, height);
+        }
+
+        @Override
+        public boolean performClick() {
+            return super.performClick();
         }
 
         @Override
         public boolean onTouchEvent(MotionEvent event) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                if (handler == null) {  // touched screen before "START" button
-                    actionButton();     // then mimic the action button being pressed...
+                performClick();
+                if (handler == null) {
+                    actionButton();
                 }
 
-                // See if we can create a new circle where pressed...
                 if (fill_mode == FILL_MODE_FULL) {
                     createNewCircle((int) event.getX(),(int) event.getY());
                 }
-            } // DOWN
+            }
 
             return true;
         }
@@ -536,7 +504,7 @@ public class CirclePackingActivity extends AppCompatActivity {
             this.y = y;
             this.r = r;
             this.paintCircle.setStrokeWidth(5);
-            this.colour = new MyColor();  // get a random colour
+            this.colour = new MyColor();
             this.paintCircle.setStyle(Paint.Style.STROKE);
             this.paintCircle.setARGB(255, colour.r, colour.g, colour.b);
         }
@@ -547,7 +515,7 @@ public class CirclePackingActivity extends AppCompatActivity {
             this.r = r;
             this.paintCircle.setStrokeWidth(5);
             this.paintCircle.setStyle(Paint.Style.FILL_AND_STROKE);
-            this.paintCircle.setColor(col); // used the passed colour
+            this.paintCircle.setColor(col);
         }
 
         void show(Canvas canvas) {
@@ -560,23 +528,19 @@ public class CirclePackingActivity extends AppCompatActivity {
             }
         }
 
-        boolean edges() {  // return true if circle touches sides
+        boolean edges() {
             return (this.x-this.r < 0 || this.y-this.r < 0 ||
                     this.x+this.r > myCanvasView.getWidth() ||
                     this.y+this.r > myCanvasView.getHeight());
         }
 
-        boolean overlapping(Circle other) {  // return true if circle overlaps with other circle passed
-            if (this.equals(other)) {  // if compared against itself, then not overlapping...
+        boolean overlapping(Circle other) {
+            if (this.equals(other)) {
                 return false;
             }
-            // otherwise find the distance between the (x,y)'s and check against the two radius
             float distance =  (float) Math.sqrt(Math.pow(this.x - other.x, 2)+Math.pow(this.y - other.y, 2));
             float result = distance - this.r - other.r;
-            // Log.i(TAG,"Overlapping result is "+result+ " returning"+(distance - this.r - other.r < 4));
             return (result < 4);
         }
-
-
     }
 }

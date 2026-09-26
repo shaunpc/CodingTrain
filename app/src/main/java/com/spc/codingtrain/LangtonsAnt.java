@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -30,34 +32,27 @@ public class LangtonsAnt extends AppCompatActivity {
     int antCol;
     int antRow;
     int maxX, maxY;
-    int cellWidth;      // grabs from the sbCellSize...
+    int cellWidth;
     boolean started = false;
     int cols, rows;
     int antMoves;
-    Cell cells[][];
+    Cell[][] cells;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        // First, create the overall RelativeLayout view group
         RelativeLayout rLayout = new RelativeLayout(this);
         RelativeLayout.LayoutParams rlParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         setContentView(rLayout, rlParams);
         rLayout.setBackgroundColor(Color.DKGRAY);
 
-        // Next, add the Button at the bottom of the screen
         btnAction = new Button(this);
         btnAction.setId(R.id.action_button_id);
         btnAction.setText(R.string.action_button_start);
-        btnAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                actionButton();
-            }
-        });
+        btnAction.setOnClickListener(v -> actionButton());
         RelativeLayout.LayoutParams btnParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         btnParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
@@ -65,19 +60,17 @@ public class LangtonsAnt extends AppCompatActivity {
         btnParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
         rLayout.addView(btnAction, btnParams);
 
-        // Next, add the SeekBar on the left of that "ACTION" button
-        seekbar  = new SeekBar(this);
+        seekbar = new SeekBar(this);
         seekbar.setId(R.id.seekbar_id);
-        // sbCellSize.setMin(10);
         seekbar.setMax(80);
         seekbar.setProgress(25);
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onStartTrackingTouch( SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch( SeekBar seekBar) {
-                started = false;    // force a restart, which will get the progress value...
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                started = false;
             }
 
             @Override
@@ -89,10 +82,9 @@ public class LangtonsAnt extends AppCompatActivity {
         btnParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
         btnParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
         btnParams.addRule(RelativeLayout.LEFT_OF, btnAction.getId());
-        btnParams.addRule(RelativeLayout.ALIGN_TOP,btnAction.getId());
+        btnParams.addRule(RelativeLayout.ALIGN_TOP, btnAction.getId());
         rLayout.addView(seekbar, btnParams);
 
-        // Then, fill the rest with the MyCanvasView class
         myCanvasView = new MyCanvasView(this);
         myCanvasView.setId(R.id.canvas_view_id);
         myCanvasView.setBackgroundColor(Color.BLUE);
@@ -110,7 +102,7 @@ public class LangtonsAnt extends AppCompatActivity {
     }
 
     void actionButton() {
-        if (action.equals("START")) {
+        if ("START".equals(action)) {
             btnAction.setText(R.string.action_button_done);
             action = "DONE";
             myCanvasView.startFrameUpdates();
@@ -123,46 +115,42 @@ public class LangtonsAnt extends AppCompatActivity {
     class MyCanvasView extends View {
         public Paint paintText;
         private Handler handler;
-        private static final int FRAME_RATE = 5; // 1000 = 1 per sec; 20 = 50 frames per sec
+        private static final int FRAME_RATE = 5;
 
         MyCanvasView(Context context) {
             super(context);
             paintText = new Paint();
             paintText.setTextSize(25);
             paintText.setColor(Color.BLUE);
-
         }
 
-        private Runnable updateFrame = new Runnable() {
+        private final Runnable updateFrame = new Runnable() {
             @Override
             public void run() {
-                handler.removeCallbacks(updateFrame);
-                // KEY FUNCTION CALL - but only when window is ready!
-                if (myCanvasView != null) {
-                    if (myCanvasView.getWidth() != 0) {
+                if (handler != null) {
+                    handler.removeCallbacks(updateFrame);
+                    if (myCanvasView != null && myCanvasView.getWidth() != 0) {
                         updateMyCanvas();
                         myCanvasView.invalidate();
                     }
+                    handler.postDelayed(updateFrame, FRAME_RATE);
                 }
-                handler.postDelayed(updateFrame, FRAME_RATE);
             }
         };
 
         void startFrameUpdates() {
-            handler = new Handler();
+            handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(updateFrame, 500);
         }
 
         void stopFrameUpdates() {
-            handler.removeCallbacks(updateFrame);
+            if (handler != null) {
+                handler.removeCallbacks(updateFrame);
+            }
         }
 
-        //TEMPLATE - KEY FUNCTION - apply any changes to each construct
         private void updateMyCanvas() {
-
-            if (!started) {   // Initiate key items the very first time
-
-                // Create the bitmap to be used...
+            if (!started) {
                 maxX = myCanvasView.getWidth();
                 maxY = myCanvasView.getHeight();
                 cellWidth = seekbar.getProgress() + 5;
@@ -175,19 +163,13 @@ public class LangtonsAnt extends AppCompatActivity {
                     }
                 }
 
-                // initialise ant position and direction
                 antCol = cols / 2;
                 antRow = rows / 2;
                 direction = UP;
-
                 started = true;
-
             } else {
-                // Perform ongoing updates
-                //Log.i(TAG,"Ant at ("+ antCol +","+ antRow +") direction " + direction);
                 switch (cells[antCol][antRow].getColour()) {
                     case Color.WHITE:
-                        //Log.i(TAG, "   on WHITE, so flipping colour and turning right...");
                         cells[antCol][antRow].flipColour();
                         direction++;
                         if (direction > LEFT) {
@@ -195,7 +177,6 @@ public class LangtonsAnt extends AppCompatActivity {
                         }
                         break;
                     case Color.BLACK:
-                        //Log.i(TAG, "   on BLACK, so flipping colour and turning left...");
                         cells[antCol][antRow].flipColour();
                         direction--;
                         if (direction < UP) {
@@ -206,7 +187,7 @@ public class LangtonsAnt extends AppCompatActivity {
                         Log.i(TAG, "** FOUND UNEXPECTED COLOUR " + cells[antCol][antRow].getColour());
                         finish();
                 }
-                // Move forward..
+
                 switch (direction) {
                     case UP:
                         antRow--;
@@ -237,30 +218,25 @@ public class LangtonsAnt extends AppCompatActivity {
                         finish();
                 }
 
-                // count the moves...
                 antMoves++;
-
             }
         }
 
 
         @Override
-        protected void onDraw(Canvas canvas) {
+        protected void onDraw(@NonNull Canvas canvas) {
             super.onDraw(canvas);
 
-            // Perform the actual drawing - effectively called by the 'invalidateCanvas' command
             if (!started) {
                 return;
             }
 
-            // display the cells first...
             for (int i = 0; i < cols; i++) {
                 for (int j = 0; j < rows; j++) {
                     cells[i][j].show(canvas);
                 }
             }
 
-            // display info on top...
             String msg = "Cell Width:" + cellWidth;
             canvas.drawText(msg, 20, 25, paintText);
             msg = "Ant Moves:" + antMoves;
@@ -270,13 +246,11 @@ public class LangtonsAnt extends AppCompatActivity {
             msg = "Ant Direction: " + direction;
             canvas.drawText(msg, 20, 100, paintText);
 
-            // highlight the ant
             cells[antCol][antRow].highlight(canvas);
         }
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            //super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             int desiredWidth = 500;
             int desiredHeight = 500;
 
@@ -287,7 +261,6 @@ public class LangtonsAnt extends AppCompatActivity {
 
             int width, height;
 
-            // Measure Width
             if (widthMode == MeasureSpec.EXACTLY) {
                 width = widthSize;
             } else if (widthMode == MeasureSpec.AT_MOST) {
@@ -296,7 +269,6 @@ public class LangtonsAnt extends AppCompatActivity {
                 width = desiredWidth;
             }
 
-            // Measure Height
             if (heightMode == MeasureSpec.EXACTLY) {
                 height = heightSize;
             } else if (heightMode == MeasureSpec.AT_MOST) {
@@ -305,14 +277,13 @@ public class LangtonsAnt extends AppCompatActivity {
                 height = desiredHeight;
             }
 
-            // MUST CALL THIS
             setMeasuredDimension(width, height);
         }
 
     }
 
-    class Cell {
-        int x, y;   // screen coords of top-left corner
+    static class Cell {
+        int x, y;
         int width;
         Paint paint;
         Paint paintEdge;
@@ -352,8 +323,7 @@ public class LangtonsAnt extends AppCompatActivity {
         }
 
         void highlight(Canvas canvas) {
-            canvas.drawCircle((this.x + this.width / 2), this.y + this.width / 2, this.width / 2, this.highlight);
+            canvas.drawCircle((this.x + this.width / 2.0f), this.y + this.width / 2.0f, this.width / 2.0f, this.highlight);
         }
     }
-
 }

@@ -25,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // enable the hyperlink to Coding Train on the textview
         TextView tv = findViewById(R.id.textView);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             tv.setText(Html.fromHtml(getString(R.string.intro), Html.FROM_HTML_MODE_LEGACY));
@@ -83,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (intent != null) {
-            Log.i(TAG, "Starting intent for " + msg + "(" + intent.toString() + ")");
+            Log.i(TAG, "Starting intent for " + msg + "(" + intent + ")");
             startActivity(intent);
         }
     }
