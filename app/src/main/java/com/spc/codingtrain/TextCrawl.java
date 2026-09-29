@@ -4,12 +4,12 @@ import android.content.Context;
 import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Shader;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -20,6 +20,7 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.Log;
+import android.view.Choreographer;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,9 +28,14 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class TextCrawl extends AppCompatActivity {
 
@@ -50,7 +56,7 @@ public class TextCrawl extends AppCompatActivity {
         RelativeLayout.LayoutParams rlParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         setContentView(rLayout, rlParams);
-        rLayout.setBackgroundColor(Color.DKGRAY);
+        rLayout.setBackgroundColor(Color.BLACK);
 
         ViewCompat.setOnApplyWindowInsetsListener(rLayout, (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -77,7 +83,7 @@ public class TextCrawl extends AppCompatActivity {
 
         myCanvasView = new MyCanvasView(this);
         myCanvasView.setId(R.id.canvas_view_id);
-        myCanvasView.setBackgroundColor(Color.BLUE);
+        myCanvasView.setBackgroundColor(Color.BLACK);
         RelativeLayout.LayoutParams cParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         cParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
@@ -106,116 +112,193 @@ public class TextCrawl extends AppCompatActivity {
     }
 
     class MyCanvasView extends View {
-        Paint paintCanvas, paintText;
+        Paint starPaint;
+        Paint fadePaint;
         TextPaint mTextPaint;
         boolean started = false;
-        private Handler handler;
-        private static final int FRAME_RATE = 25; // 50 frames per second
-        Camera camera = new Camera();
+        boolean isRunning = false;
+
+        private long lastFrameTimeNanos = 0;
+        private final Camera camera = new Camera();
+        private final Matrix transformMatrix = new Matrix();
+
         int maxX, maxY;
-        int posY;   // where start the text draw
+        float posY;   // scroll position (Y offset for text layout)
         StaticLayout mTextLayout;
+        int layoutWidth;
 
-
-        MyCanvasView(Context context) {
-            super(context);
-            paintCanvas = new Paint();
-            paintCanvas.setStyle(Paint.Style.STROKE);
-            paintCanvas.setColor(Color.BLACK);
-            mTextPaint = new TextPaint();
-            mTextPaint.setTextSize(16 * getResources().getDisplayMetrics().density);
-            mTextPaint.setARGB(255, 229, 177,58);
-            mTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
-            paintText = new Paint();
-            paintText.setTextSize(25);
-            paintText.setColor(Color.WHITE);
-
+        // Starfield
+        class Star {
+            float x, y, radius;
+            int alpha;
         }
+        private final List<Star> stars = new ArrayList<>();
 
-        private final Runnable updateFrame = new Runnable() {
+        private final Choreographer.FrameCallback frameCallback = new Choreographer.FrameCallback() {
             @Override
-            public void run() {
-                if (handler != null) {
-                    handler.removeCallbacks(updateFrame);
-                    if (myCanvasView != null && myCanvasView.getWidth() != 0) {
-                        updateMyCanvas();
-                        myCanvasView.invalidate();
-                    }
-                    handler.postDelayed(updateFrame, FRAME_RATE);
+            public void doFrame(long frameTimeNanos) {
+                if (!isRunning) return;
+
+                if (lastFrameTimeNanos > 0) {
+                    float deltaSeconds = (frameTimeNanos - lastFrameTimeNanos) / 1_000_000_000.0f;
+                    // Cap delta to prevent jump after pause
+                    if (deltaSeconds > 0.1f) deltaSeconds = 0.016f;
+
+                    updateScroll(deltaSeconds);
+                    invalidate();
                 }
+                lastFrameTimeNanos = frameTimeNanos;
+                Choreographer.getInstance().postFrameCallback(this);
             }
         };
 
+        MyCanvasView(Context context) {
+            super(context);
+
+            mTextPaint = new TextPaint();
+            float density = getResources().getDisplayMetrics().density;
+            mTextPaint.setTextSize(20 * density);
+            mTextPaint.setColor(0xFFE5B13A); // Star Wars Gold
+            mTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
+            mTextPaint.setAntiAlias(true);
+
+            starPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            starPaint.setColor(Color.WHITE);
+
+            fadePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        }
+
         void startFrameUpdates() {
-            handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(updateFrame, 500);
+            isRunning = true;
+            lastFrameTimeNanos = 0;
+            Choreographer.getInstance().postFrameCallback(frameCallback);
         }
 
         void stopFrameUpdates() {
-            if (handler != null) {
-                handler.removeCallbacks(updateFrame);
-            }
+            isRunning = false;
+            Choreographer.getInstance().removeFrameCallback(frameCallback);
         }
 
-        private void updateMyCanvas() {
+        private void initLayoutAndStars() {
             maxX = getWidth();
             maxY = getHeight();
 
-            if (!started) {
-                crawlText = readFileAsString(sourceFiles[current]);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    mTextLayout = StaticLayout.Builder.obtain(crawlText, 0, crawlText.length(), mTextPaint, maxX)
-                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                            .setLineSpacing(0.0f, 1.0f)
-                            .setIncludePad(false)
-                            .build();
-                } else {
-                    mTextLayout = new StaticLayout(crawlText, mTextPaint, maxX,
-                            Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
-                }
-                posY = maxY;
-                started = true;
-            } else {
-                if (posY + mTextLayout.getHeight() < 0 ) {
-                    startNextFile();
-                }
+            if (maxX == 0 || maxY == 0) return;
+
+            // Generate starfield
+            stars.clear();
+            Random random = new Random(42); // Fixed seed for consistent star map
+            for (int i = 0; i < 150; i++) {
+                Star star = new Star();
+                star.x = random.nextFloat() * maxX;
+                star.y = random.nextFloat() * maxY;
+                star.radius = 1.0f + random.nextFloat() * 2.5f;
+                star.alpha = 100 + random.nextInt(155);
+                stars.add(star);
+            }
+
+            // Top horizon fade gradient (fade text out as it reaches top horizon)
+            LinearGradient fadeShader = new LinearGradient(
+                    0, 0, 0, maxY * 0.30f,
+                    Color.BLACK, Color.TRANSPARENT,
+                    Shader.TileMode.CLAMP
+            );
+            fadePaint.setShader(fadeShader);
+
+            // Load text layout
+            loadEpisodeText();
+        }
+
+        private void loadEpisodeText() {
+            crawlText = readFileAsString(sourceFiles[current]);
+            layoutWidth = (int) (maxX * 0.75f); // 75% width for nice 3D trapezoid proportion
+
+            mTextLayout = StaticLayout.Builder.obtain(crawlText, 0, crawlText.length(), mTextPaint, layoutWidth)
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                    .setLineSpacing(0.0f, 1.2f)
+                    .setIncludePad(false)
+                    .build();
+
+            posY = maxY; // Start at the bottom of the screen
+            started = true;
+        }
+
+        private void updateScroll(float deltaSeconds) {
+            if (!started) return;
+
+            float density = getResources().getDisplayMetrics().density;
+            float speed = 35.0f * density; // Pixels per second
+            posY -= speed * deltaSeconds;
+
+            // Once text has scrolled off top horizon completely, load next episode
+            if (mTextLayout != null && posY + mTextLayout.getHeight() < -200) {
+                startNextFile();
             }
         }
 
-        String readFileAsString (int resID) {
-            InputStream inputStream = getResources().openRawResource(resID);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-            try {
-                int i = inputStream.read();
-                while (i != -1) {
-                    byteArrayOutputStream.write(i);
-                    i = inputStream.read();
+        String readFileAsString(int resID) {
+            try (InputStream inputStream = getResources().openRawResource(resID);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line).append("\n");
                 }
-                inputStream.close();
+                return sb.toString();
             } catch (IOException e) {
                 Log.e(TAG, "Error reading raw resource file", e);
+                return "";
             }
-            return (byteArrayOutputStream.toString());
+        }
+
+        @Override
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
+            initLayoutAndStars();
         }
 
         @Override
         protected void onDraw(@NonNull Canvas canvas) {
             super.onDraw(canvas);
 
-            if (started) {
-                canvas.drawPaint(paintCanvas);
+            // 1. Draw space background
+            canvas.drawColor(Color.BLACK);
+
+            // 2. Draw starfield
+            for (Star star : stars) {
+                starPaint.setAlpha(star.alpha);
+                canvas.drawCircle(star.x, star.y, star.radius, starPaint);
+            }
+
+            // 3. Draw 3D scrolling text
+            if (started && mTextLayout != null) {
+                float density = getResources().getDisplayMetrics().density;
+                float centerX = maxX / 2.0f;
+                float centerY = maxY * 0.5f;
 
                 camera.save();
-                canvas.save();
-                camera.translate((float) (maxX / 2.0), maxY, 0);
-                camera.setLocation(0, 0, 200);
-                camera.rotate(45, 0, 0);
-                camera.applyToCanvas(canvas);
-                canvas.translate((float) (-maxX / 2.0), posY);
-                mTextLayout.draw(canvas);
-                canvas.restore();
+                // Adjust camera location for screen density to avoid extreme Z clipping
+                camera.setLocation(0, 0, -8.0f * density);
+                camera.rotateX(60.0f); // 60 degree backwards pitch for Star Wars crawl angle
+                camera.getMatrix(transformMatrix);
                 camera.restore();
+
+                // Center perspective rotation around canvas center pivot
+                transformMatrix.preTranslate(-centerX, -centerY);
+                transformMatrix.postTranslate(centerX, centerY);
+
+                canvas.save();
+                canvas.concat(transformMatrix);
+
+                // Draw text layout centered horizontally at current posY scroll offset
+                float layoutLeft = (maxX - layoutWidth) / 2.0f;
+                canvas.translate(layoutLeft, posY);
+                mTextLayout.draw(canvas);
+
+                canvas.restore();
+
+                // 4. Draw horizon fade mask over top 30% of screen
+                canvas.drawRect(0, 0, maxX, maxY * 0.30f, fadePaint);
             }
         }
 
@@ -259,21 +342,22 @@ public class TextCrawl extends AppCompatActivity {
         public boolean onTouchEvent(MotionEvent event) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 performClick();
-                if (handler == null) {
+                if (!isRunning) {
                     actionButton();
+                } else {
+                    startNextFile();
                 }
-                startNextFile();
             }
-
             return true;
         }
 
         void startNextFile() {
             current++;
-            if (current > sourceFiles.length-1) {
+            if (current >= sourceFiles.length) {
                 current = 0;
             }
-            started = false;
+            loadEpisodeText();
+            invalidate();
         }
     }
 }
